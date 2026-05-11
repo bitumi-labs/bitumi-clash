@@ -130,6 +130,7 @@ interface ProfileItem {
   announce?: string
   logo?: string
   supportUrl?: string
+  globalMode?: boolean
 }
 
 interface SubscriptionUserInfo {
