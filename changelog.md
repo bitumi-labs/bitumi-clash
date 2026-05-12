@@ -1,3 +1,8 @@
+## 1.3.1
+
+- fixed system proxy
+- fixed bug from issue #89
+
 ## 1.3.0
 
 - new update notifier
