@@ -75,7 +75,7 @@ export async function updateProfileItem(item: ProfileItem): Promise<void> {
   await setProfileConfig(config)
 }
 
-export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> {
+export async function addProfileItem(item: Partial<ProfileItem>): Promise<boolean> {
   if (item.url && item.type === 'remote') {
     const config = await getProfileConfig()
     const duplicate = config.items?.find((existing) => existing.url === item.url && existing.id !== item.id)
@@ -83,7 +83,7 @@ export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> 
       throw new Error(t('error.duplicateProfile'))
     }
   }
-  const newItem = await createProfile(item)
+  const { item: newItem, changed } = await createProfile(item)
   const config = await getProfileConfig()
   const isExisting = !!(await getProfileItem(newItem.id))
   if (isExisting) {
@@ -101,6 +101,7 @@ export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> 
     await patchAppConfig({ customTheme: newItem.customCss || 'default.css' })
     mainWindow?.webContents.send('appConfigUpdated')
   }
+  return changed
 }
 
 async function enforceGlobalModeRestriction(id: string): Promise<void> {
@@ -175,8 +176,14 @@ async function downloadLogoAsBase64(
   }
 }
 
-export async function createProfile(item: Partial<ProfileItem>): Promise<ProfileItem> {
+export async function createProfile(
+  item: Partial<ProfileItem>
+): Promise<{ item: ProfileItem; changed: boolean }> {
   const id = item.id || new Date().getTime().toString(16)
+  // Snapshot the previous content (if any) so we can tell whether this fetch/save
+  // actually changed the subscription body. null means there was no prior profile.
+  const oldContent = existsSync(profilePath(id)) ? await getProfileStr(id) : null
+  let newContent = ''
   const newItem = {
     id,
     name: item.name || (item.type === 'remote' ? 'Remote File' : 'Local File'),
@@ -366,16 +373,19 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
           throw new Error(t('error.subscriptionFormatError'))
         }
       }
+      newContent = data
       await setProfileStr(id, data)
       break
     }
     case 'local': {
       const data = item.file || ''
+      newContent = data
       await setProfileStr(id, data)
       break
     }
   }
-  return newItem
+  const changed = oldContent === null ? true : oldContent !== newContent
+  return { item: newItem, changed }
 }
 
 export async function getProfileStr(id: string | undefined): Promise<string> {

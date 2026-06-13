@@ -11,6 +11,8 @@ import Tun from '@renderer/pages/tun'
 import Resources from '@renderer/pages/resources'
 import DNS from '@renderer/pages/dns'
 import Sniffer from '@renderer/pages/sniffer'
+import SettingsChanged from '@renderer/pages/settings-changed'
+import SettingsTabs from '@renderer/pages/settings-tabs'
 import Home from '@renderer/pages/home'
 const routes = [
   {
@@ -60,6 +62,14 @@ const routes = [
   {
     path: '/settings',
     element: <Settings />
+  },
+  {
+    path: '/settings/changed',
+    element: <SettingsChanged />
+  },
+  {
+    path: '/settings/tabs',
+    element: <SettingsTabs />
   },
   {
     path: '/',

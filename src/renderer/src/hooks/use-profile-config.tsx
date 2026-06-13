@@ -10,11 +10,13 @@ import {
   changeCurrentProfile as change
 } from '@renderer/utils/ipc'
 
+export type ProfileUpdateResult = 'updated' | 'unchanged' | 'failed'
+
 interface ProfileConfigContextType {
   profileConfig: ProfileConfig | undefined
   setProfileConfig: (config: ProfileConfig) => Promise<void>
   mutateProfileConfig: () => void
-  addProfileItem: (item: Partial<ProfileItem>) => Promise<void>
+  addProfileItem: (item: Partial<ProfileItem>) => Promise<ProfileUpdateResult>
   updateProfileItem: (item: ProfileItem) => Promise<void>
   removeProfileItem: (id: string) => Promise<void>
   changeCurrentProfile: (id: string) => Promise<void>
@@ -52,15 +54,17 @@ export const ProfileConfigProvider: React.FC<{ children: ReactNode }> = ({ child
     }
   }
 
-  const addProfileItem = async (item: Partial<ProfileItem>): Promise<void> => {
+  const addProfileItem = async (item: Partial<ProfileItem>): Promise<ProfileUpdateResult> => {
     try {
-      await add(item)
+      const changed = await add(item)
+      return changed ? 'updated' : 'unchanged'
     } catch (e) {
       if (`${e}`.includes('HWID_LIMIT')) {
         setHwidLimitErrorFromMessage(`${e}`)
       } else {
         toast.error(`${e}`)
       }
+      return 'failed'
     } finally {
       mutateProfileConfig()
       window.electron.ipcRenderer.send('updateTrayMenu')
