@@ -243,6 +243,53 @@ const Proxies: React.FC = () => {
     }
   }, [])
 
+  // Candidate column count comes from the viewport, but collapse to a single
+  // column when any outbound name would be truncated ("Long Name...") at that
+  // width, so every name is shown in full.
+  const measureCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const computeAutoCols = useCallback((): number => {
+    const candidate = calcCols()
+    if (candidate <= 1) return 1
+    const container = scrollContainerRef.current
+    if (!container) return candidate
+
+    // This will totally break if we change any of the related styles without updating the constants below, but it's a pain to query all of them so... good enough for now.
+    const ROW_MARGIN = 16 // .mx-2 on the row wrapper
+    const GRID_PADDING = 24 // .px-3 on the grid
+    const GAP = 8 // .gap-2 between cells
+    const CARD_PADDING = 32 // .pl-4 .pr-4 inside each ProxyItem
+    const DELAY_BTN = 36 // delay button + its gap
+    const PIN_BTN = 28 // pin button shown for a fixed node
+    const TYPE_GAP = 6 // gap before the inline type in single layout
+
+    const cellWidth =
+      (container.clientWidth - ROW_MARGIN - GRID_PADDING - GAP * (candidate - 1)) / candidate
+    const baseBudget = cellWidth - CARD_PADDING - DELAY_BTN
+    if (baseBudget <= 0) return 1
+
+    const canvas =
+      measureCanvasRef.current ?? (measureCanvasRef.current = document.createElement('canvas'))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return candidate
+    const { fontFamily } = getComputedStyle(container)
+    ctx.font = `14px ${fontFamily}` // matches .text-sm on the name span
+
+    for (const group of groups) {
+      for (const proxy of group.all) {
+        if (!proxy) continue
+        let budget = baseBudget
+        if (group.fixed && group.fixed === proxy.name) budget -= PIN_BTN
+        if (proxyDisplayLayout === 'single') {
+          const type =
+            !('all' in proxy) && proxy.serverDescription ? proxy.serverDescription : proxy.type
+          budget -= ctx.measureText(type).width + TYPE_GAP
+        }
+        if (ctx.measureText(proxy.name).width > budget) return 1
+      }
+    }
+    return candidate
+  }, [calcCols, groups, proxyDisplayLayout])
+
   const toggleOpen = useCallback((index: number) => {
     setIsOpen((prev) => {
       const newOpen = [...prev]
@@ -292,15 +339,13 @@ const Proxies: React.FC = () => {
       setCols(parseInt(proxyCols))
       return
     }
-    setCols(calcCols())
-    const handleResize = (): void => {
-      setCols(calcCols())
-    }
-    window.addEventListener('resize', handleResize)
+    const update = (): void => setCols(computeAutoCols())
+    update()
+    window.addEventListener('resize', update)
     return (): void => {
-      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', update)
     }
-  }, [proxyCols, calcCols])
+  }, [proxyCols, computeAutoCols])
 
   const groupContent = useCallback(
     (index: number) => {
@@ -436,12 +481,8 @@ const Proxies: React.FC = () => {
           >
             <div
               data-guide={groupIndex === 0 ? 'proxies-first-group-row' : undefined}
-              style={
-                proxyCols !== 'auto'
-                  ? { gridTemplateColumns: `repeat(${proxyCols}, minmax(0, 1fr))` }
-                  : {}
-              }
-              className={cn('grid gap-2 px-3 pt-2', proxyCols === 'auto' && 'sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5', isLastRow && 'pb-3')}
+              style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+              className={cn('grid gap-2 px-3 pt-2', isLastRow && 'pb-3')}
             >
               {Array.from({ length: cols }).map((_, i) => {
                 const proxy = currentAllProxies[groupIndex][innerIndex * cols + i]
@@ -468,7 +509,6 @@ const Proxies: React.FC = () => {
       )
     },
     [
-      proxyCols,
       cols,
       mutate,
       onProxyDelay,
