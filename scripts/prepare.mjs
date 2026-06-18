@@ -45,8 +45,10 @@ async function getLatestAlphaVersion() {
     MIHOMO_ALPHA_VERSION = v.trim() // Trim to remove extra whitespaces
     console.log(`Latest alpha version: ${MIHOMO_ALPHA_VERSION}`)
   } catch (error) {
+    // Throw (don't process.exit) so the caller's retry loop can retry —
+    // GitHub-hosted macOS runners hit transient "fetch failed" here.
     console.error('Error fetching latest alpha version:', error.message)
-    process.exit(1)
+    throw error
   }
 }
 
@@ -76,8 +78,10 @@ async function getLatestReleaseVersion() {
     MIHOMO_VERSION = v.trim() // Trim to remove extra whitespaces
     console.log(`Latest release version: ${MIHOMO_VERSION}`)
   } catch (error) {
+    // Throw (don't process.exit) so the caller's retry loop can retry —
+    // GitHub-hosted macOS runners hit transient "fetch failed" here.
     console.error('Error fetching latest release version:', error.message)
-    process.exit(1)
+    throw error
   }
 }
 
