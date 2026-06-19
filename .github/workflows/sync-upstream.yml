@@ -3,9 +3,15 @@ name: Sync Upstream
 # Keeps this fork's main branch in step with the upstream project. Runs on a
 # schedule (and on demand) so the fork tracks upstream with no manual work.
 #
+# Each sync lands upstream's new commits as ONE squashed commit on main - no merge
+# commit, no second parent. The upstream commit we last integrated is recorded in
+# .github/upstream-sync-base, and every run diffs from there: that keeps the merge
+# base moving forward so recurring edits (the package.json version on each release,
+# most painfully) never look like conflicts.
+#
 # Fork-owned files (branding.json, app/installer/tray icons - see .gitattributes)
-# are always kept on OUR side: upstream changes to them never flow in and never
-# cause a conflict. Everything else is merged normally.
+# are always kept on OUR side: they are excluded from the upstream delta, so an
+# upstream change to them never flows in and never causes a conflict.
 #
 # When a sync brings in a package.json version bump, the release build is
 # triggered explicitly via workflow_dispatch. We cannot rely on the push trigger
@@ -50,49 +56,79 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Resolve conflicts in fork-owned files (.gitattributes: merge=ours) to
-          # our side so an upstream edit to branding/icons never halts the merge.
-          git config merge.ours.driver true
 
           git remote get-url upstream >/dev/null 2>&1 || \
             git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          # Full branch history so we can diff from the commit we last synced, even
+          # when that is many releases behind upstream's tip.
           git fetch --no-tags upstream "${UPSTREAM_BRANCH}"
 
           OLD_VERSION=$(jq -r '.version' package.json)
           PRE=$(git rev-parse HEAD)
+          TIP=$(git rev-parse "upstream/${UPSTREAM_BRANCH}")
 
-          # Nothing new upstream - HEAD already contains upstream's tip.
-          if git merge-base --is-ancestor upstream/"${UPSTREAM_BRANCH}" HEAD; then
+          # Where we left off last time. Squashing records no merge parent, so
+          # git's own merge-base would stay frozen at the fork point and make every
+          # later sync re-conflict on lines upstream re-touches across syncs (the
+          # package.json version on each release, most painfully). We instead
+          # remember the exact upstream commit we last integrated and diff from
+          # there, so the base advances every run.
+          STATE_FILE=.github/upstream-sync-base
+          if [ -f "$STATE_FILE" ] && git cat-file -e "$(cat "$STATE_FILE")^{commit}" 2>/dev/null; then
+            BASE=$(cat "$STATE_FILE")
+          else
+            # First run, or the recorded commit vanished after an upstream rewrite:
+            # fall back to where the two histories diverged.
+            BASE=$(git merge-base HEAD "upstream/${UPSTREAM_BRANCH}")
+          fi
+
+          # Nothing new upstream since we last synced.
+          if [ "$BASE" = "$TIP" ]; then
             echo "Already up to date with ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}."
             echo "synced=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Fast-forwards when the fork has no extra commits; otherwise creates a
-          # merge commit. The merge=ours driver auto-resolves fork-owned files; a
-          # conflict in any other file leaves the tree dirty, so abort and signal.
-          if ! git merge --no-edit upstream/"${UPSTREAM_BRANCH}"; then
-            git merge --abort || true
-            echo "conflict=true" >> "$GITHUB_OUTPUT"
-            echo "::error::Merge conflict syncing ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} into main."
-            exit 1
-          fi
-
-          # Pin fork-owned files to our version. The merge driver only fires on a
-          # true conflict; when upstream edits a file we have NOT touched, git
-          # silently takes theirs - so restore those paths from our pre-merge
-          # commit. Patterns are read from .gitattributes (single source of truth).
+          # Fork-owned paths (branding.json, icons) are never taken from upstream.
+          # Excluding them from the delta IS what keeps them ours - an upstream edit
+          # to any of them simply isn't in what we apply, so it can't conflict.
+          # .gitattributes is the single source of truth for the list.
+          PATTERNS=()
           while IFS= read -r pat; do
             [ -z "$pat" ] && continue
-            git checkout "$PRE" -- "$pat" 2>/dev/null || true
+            PATTERNS+=("$pat")
           done < <(grep -E 'merge=ours' .gitattributes | grep -v '^[[:space:]]*#' | awk '{print $1}')
+          EXCLUDES=()
+          for pat in "${PATTERNS[@]}"; do EXCLUDES+=(":(exclude)$pat"); done
 
-          if ! git diff --cached --quiet; then
-            echo "Restored fork-owned branding/icons over upstream changes."
-            git commit -m "chore(sync): keep fork-owned branding and icons"
+          # The squash: upstream's changes since the last sync as one parentless
+          # delta - no merge commit. --3way self-heals context drift and reports a
+          # real conflict (exit non-zero) only when the fork and upstream edited the
+          # same lines of a shared (non-fork-owned) file.
+          PATCH="$RUNNER_TEMP/upstream-sync.patch"
+          git diff --binary "$BASE" "$TIP" -- . "${EXCLUDES[@]}" > "$PATCH"
+          if [ -s "$PATCH" ]; then
+            if ! git apply --3way --index --whitespace=nowarn "$PATCH"; then
+              git reset --hard "$PRE"
+              echo "conflict=true" >> "$GITHUB_OUTPUT"
+              echo "::error::Conflict squashing ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} into main."
+              exit 1
+            fi
           fi
 
+          # Safety net: if a fork-owned pattern slipped past the pathspec exclude,
+          # pin those paths back to our pre-sync version.
+          for pat in "${PATTERNS[@]}"; do
+            git checkout "$PRE" -- "$pat" 2>/dev/null || true
+          done
+
+          # Record how far we have synced so the next run diffs from here. This is
+          # always a change (TIP != BASE), so there is always something to commit.
+          echo "$TIP" > "$STATE_FILE"
+          git add "$STATE_FILE"
+
           NEW_VERSION=$(jq -r '.version' package.json)
+          git commit -m "chore(sync): squash upstream ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} (${TIP:0:12})"
           git push origin HEAD:main
 
           echo "synced=true" >> "$GITHUB_OUTPUT"
@@ -132,21 +168,23 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --title "Upstream sync conflict with ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}" \
             --body "$(cat <<EOF
-          The scheduled **Sync Upstream** workflow could not merge \`${UPSTREAM_REPO}@${UPSTREAM_BRANCH}\` into \`main\` because of a merge conflict in a non-fork-owned file.
+          The scheduled **Sync Upstream** workflow could not squash \`${UPSTREAM_REPO}@${UPSTREAM_BRANCH}\` into \`main\` because of a conflict in a non-fork-owned file.
 
-          Fork-owned files (\`branding.json\` and the icons listed in \`.gitattributes\`) are resolved automatically, so this conflict is in a shared source/config file that both sides changed on the same lines.
+          Fork-owned files (\`branding.json\` and the icons listed in \`.gitattributes\`) are excluded automatically, so this conflict is in a shared source/config file that both sides changed on the same lines.
 
-          **To resolve:**
+          **To resolve** (keeps \`main\` linear - no merge commit):
           \`\`\`bash
           git fetch upstream ${UPSTREAM_BRANCH}
           git checkout main
-          git merge upstream/${UPSTREAM_BRANCH}
-          # resolve conflicts, keeping the fork's changes where appropriate
-          git commit
+          git merge --squash upstream/${UPSTREAM_BRANCH}
+          # resolve conflicts, keeping the fork's branding/changes where appropriate
+          git rev-parse upstream/${UPSTREAM_BRANCH} > .github/upstream-sync-base
+          git add -A
+          git commit -m "chore(sync): squash upstream ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}"
           git push origin main
           \`\`\`
 
-          The next scheduled sync resumes automatically once \`main\` contains upstream's tip. Close this issue after resolving.
+          The \`.github/upstream-sync-base\` line is what tells the next run where to resume; the next scheduled sync picks up automatically once it records upstream's tip. Close this issue after resolving.
 
           _Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}_
           EOF

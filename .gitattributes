@@ -1,12 +1,11 @@
 # Fork-owned files: always keep THIS fork's version when syncing from upstream.
 #
-# Two mechanisms protect these paths (see .github/workflows/sync-upstream.yml):
-#   1. The `ours` merge driver resolves true conflicts here to our side, so an
-#      upstream edit can never halt the automated merge.
-#   2. After each merge the workflow restores these paths from our pre-merge
-#      commit - this covers the common case where upstream edits a file we have
-#      not touched (git fast-applies theirs without a conflict, so the driver
-#      never runs).
+# How these paths stay on our side:
+#   - The sync workflow excludes them from the upstream delta entirely, so an
+#     upstream edit to any of them is never part of what gets applied and can
+#     never conflict (see .github/workflows/sync-upstream.yml).
+#   - The `ours` merge driver below resolves them to our side for any manual
+#     `git merge upstream/...` a maintainer runs outside the workflow.
 # This file is the single source of truth for that protected list.
 
 branding.json                         merge=ours
