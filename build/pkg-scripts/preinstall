@@ -1,6 +1,6 @@
 #!/bin/sh
 
-APP_NAME="ClashApp"
+APP_NAME="Bitumi Clash"
 
 # --- Clean up old sparkle.helper service ---
 if [ -f "/Library/PrivilegedHelperTools/sparkle.helper" ]; then

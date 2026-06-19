@@ -173,13 +173,13 @@ export async function createApplicationMenu(): Promise<void> {
         {
           label: t('menu.learnMore'),
           click: () => {
-            shell.openExternal('https://github.com/kirisame-meguru/clashapp')
+            shell.openExternal('https://github.com/bitumi-labs/bitumi-clash')
           }
         },
         {
           label: t('menu.reportIssue'),
           click: () => {
-            shell.openExternal('https://github.com/kirisame-meguru/clashapp/issues')
+            shell.openExternal('https://github.com/bitumi-labs/bitumi-clash/issues')
           }
         },
         { type: 'separator' },
