@@ -1,0 +1,19 @@
+# Fork-owned files: always keep THIS fork's version when syncing from upstream.
+#
+# Two mechanisms protect these paths (see .github/workflows/sync-upstream.yml):
+#   1. The `ours` merge driver resolves true conflicts here to our side, so an
+#      upstream edit can never halt the automated merge.
+#   2. After each merge the workflow restores these paths from our pre-merge
+#      commit - this covers the common case where upstream edits a file we have
+#      not touched (git fast-applies theirs without a conflict, so the driver
+#      never runs).
+# This file is the single source of truth for that protected list.
+
+branding.json                         merge=ours
+
+# App / installer / tray icons and the in-app logo (the fork's visual identity).
+build/icon.*                          merge=ours
+build/installerIcon*                  merge=ours
+resources/icon*                       merge=ours
+resources/app_icon_source.svg         merge=ours
+src/renderer/src/assets/app-logo.png  merge=ours

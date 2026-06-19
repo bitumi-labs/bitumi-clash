@@ -1,0 +1,153 @@
+name: Sync Upstream
+
+# Keeps this fork's main branch in step with the upstream project. Runs on a
+# schedule (and on demand) so the fork tracks upstream with no manual work.
+#
+# Fork-owned files (branding.json, app/installer/tray icons - see .gitattributes)
+# are always kept on OUR side: upstream changes to them never flow in and never
+# cause a conflict. Everything else is merged normally.
+#
+# When a sync brings in a package.json version bump, the release build is
+# triggered explicitly via workflow_dispatch. We cannot rely on the push trigger
+# in build.yml: pushes made with the default GITHUB_TOKEN do not start other
+# workflow runs (GitHub's anti-recursion rule). Dispatching is the documented
+# exception that IS allowed with GITHUB_TOKEN, and it also handles upstream
+# landing several commits at once - which build.yml's HEAD~1 check would miss.
+
+permissions:
+  contents: write # push the synced main branch
+  actions: write # dispatch build.yml on a version bump
+  issues: write # open an issue when a sync conflicts
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
+  workflow_dispatch:
+
+# Never run two syncs at once; let an in-flight sync finish rather than cancel it.
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: kirisame-meguru/clashapp
+  UPSTREAM_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (full history)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Sync from upstream
+        id: sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Resolve conflicts in fork-owned files (.gitattributes: merge=ours) to
+          # our side so an upstream edit to branding/icons never halts the merge.
+          git config merge.ours.driver true
+
+          git remote get-url upstream >/dev/null 2>&1 || \
+            git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --no-tags upstream "${UPSTREAM_BRANCH}"
+
+          OLD_VERSION=$(jq -r '.version' package.json)
+          PRE=$(git rev-parse HEAD)
+
+          # Nothing new upstream - HEAD already contains upstream's tip.
+          if git merge-base --is-ancestor upstream/"${UPSTREAM_BRANCH}" HEAD; then
+            echo "Already up to date with ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}."
+            echo "synced=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Fast-forwards when the fork has no extra commits; otherwise creates a
+          # merge commit. The merge=ours driver auto-resolves fork-owned files; a
+          # conflict in any other file leaves the tree dirty, so abort and signal.
+          if ! git merge --no-edit upstream/"${UPSTREAM_BRANCH}"; then
+            git merge --abort || true
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            echo "::error::Merge conflict syncing ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} into main."
+            exit 1
+          fi
+
+          # Pin fork-owned files to our version. The merge driver only fires on a
+          # true conflict; when upstream edits a file we have NOT touched, git
+          # silently takes theirs - so restore those paths from our pre-merge
+          # commit. Patterns are read from .gitattributes (single source of truth).
+          while IFS= read -r pat; do
+            [ -z "$pat" ] && continue
+            git checkout "$PRE" -- "$pat" 2>/dev/null || true
+          done < <(grep -E 'merge=ours' .gitattributes | grep -v '^[[:space:]]*#' | awk '{print $1}')
+
+          if ! git diff --cached --quiet; then
+            echo "Restored fork-owned branding/icons over upstream changes."
+            git commit -m "chore(sync): keep fork-owned branding and icons"
+          fi
+
+          NEW_VERSION=$(jq -r '.version' package.json)
+          git push origin HEAD:main
+
+          echo "synced=true" >> "$GITHUB_OUTPUT"
+          echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+            echo "Version bump detected: ${OLD_VERSION:-<none>} -> $NEW_VERSION"
+            echo "version_bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Synced with no version change ($NEW_VERSION)."
+            echo "version_bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger release build on version bump
+        if: steps.sync.outputs.version_bumped == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Dispatching build.yml to release ${{ steps.sync.outputs.new_version }}."
+          # Pin --repo to THIS fork: the sync step added an `upstream` remote, and
+          # gh otherwise resolves the base repo to upstream (-> 403, no access).
+          gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref main -f version="${{ steps.sync.outputs.new_version }}"
+
+      - name: Open issue on sync conflict
+        if: failure() && steps.sync.outputs.conflict == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Don't pile up duplicate issues across failed runs.
+          OPEN=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "Upstream sync conflict"' --json number --jq 'length')
+          if [ "${OPEN:-0}" -gt 0 ]; then
+            echo "An open sync-conflict issue already exists; not creating another."
+            exit 0
+          fi
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Upstream sync conflict with ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}" \
+            --body "$(cat <<EOF
+          The scheduled **Sync Upstream** workflow could not merge \`${UPSTREAM_REPO}@${UPSTREAM_BRANCH}\` into \`main\` because of a merge conflict in a non-fork-owned file.
+
+          Fork-owned files (\`branding.json\` and the icons listed in \`.gitattributes\`) are resolved automatically, so this conflict is in a shared source/config file that both sides changed on the same lines.
+
+          **To resolve:**
+          \`\`\`bash
+          git fetch upstream ${UPSTREAM_BRANCH}
+          git checkout main
+          git merge upstream/${UPSTREAM_BRANCH}
+          # resolve conflicts, keeping the fork's changes where appropriate
+          git commit
+          git push origin main
+          \`\`\`
+
+          The next scheduled sync resumes automatically once \`main\` contains upstream's tip. Close this issue after resolving.
+
+          _Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}_
+          EOF
+          )"
