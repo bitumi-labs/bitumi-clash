@@ -1,0 +1,135 @@
+/* Bitumi */
+/* Legacy Bitumi purple/coral theme, delivered to clients via the `custom-css`
+   subscription response header (see clashapp README). It re-declares every theme
+   variable that the upstream navy default changed, so injecting it on top
+   restores the original Bitumi look.
+
+   Override mechanism: the client injects this with Electron insertCSS, which
+   appends it AFTER the bundled stylesheet using identical :root / .dark
+   selectors. Same specificity + later source order => this wins. Do not add an
+   `@theme inline` block (Tailwind maps read these vars live) and do not use
+   !important. */
+
+:root {
+  --background: #fdf8fa;
+  --foreground: #2a1620;
+  --card: #fffdfe;
+  --card-foreground: #2a1620;
+  --popover: #fffdfe;
+  --popover-foreground: #2a1620;
+  --primary: #e6446a;
+  --primary-foreground: #ffffff;
+  --secondary: #ffe4ea;
+  --secondary-foreground: #5a2533;
+  --muted: #fdeef2;
+  --muted-foreground: #8a6472;
+  --gradient: linear-gradient(135deg, #6c63ff 0%, #b05acb 45%, #ff6584 100%);
+  --gradient2: linear-gradient(135deg, #6c63ff, #ff6584);
+  --gradient3: linear-gradient(135deg, #8a7bff, #ff8da3);
+  --gradient4: linear-gradient(135deg, #ff6584, #ff8da3);
+  --glass-bg: rgb(255 255 255 / 62%);
+  --glass-border: rgb(236 77 110 / 16%);
+  --surface: rgb(255 255 255 / 64%);
+  --surface-strong: rgb(255 255 255 / 82%);
+  --app-bg-start: #fffafc;
+  --app-bg-mid: #f3eeff;
+  --app-bg-end: #fdeef2;
+  --shadow-soft: 0 18px 46px rgb(150 40 80 / 10%);
+  --stroke-power-off: #f0c2cc;
+  --gradient-start-power-off: #efe4ff;
+  --gradient-end-power-off: #ffe0ec;
+  --stroke-power-on: #ffb3c0;
+  --gradient-start-power-on: #6c63ff;
+  --gradient-end-power-on: #ff6584;
+  --profile-active: rgb(255 101 132 / 16%);
+  --stroke-profile-active: rgb(255 101 132 / 32%);
+  --profile-inactive: rgb(255 253 254 / 62%);
+  --stroke-profile-inactive: rgb(236 77 110 / 14%);
+  --stroke: rgb(236 77 110 / 15%);
+  --accent: #ffe4ea;
+  --accent-foreground: #5a2533;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgb(236 77 110 / 14%);
+  --input: rgb(236 77 110 / 18%);
+  --ring: #e6446a;
+  --chart-1: #ff6584;
+  --chart-2: #6c63ff;
+  --chart-3: #ff8da3;
+  --chart-4: #a78bfa;
+  --chart-5: #7c75ff;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #26112f;
+  --info: #3b82f6;
+  --sidebar: #fffafc;
+  --sidebar-foreground: #2a1620;
+  --sidebar-primary: #e6446a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffe4ea;
+  --sidebar-accent-foreground: #5a2533;
+  --sidebar-border: rgb(236 77 110 / 16%);
+  --sidebar-ring: #e6446a;
+  --glow-rgb: 255 101 132;
+}
+
+.dark {
+  --background: #1a1222;
+  --foreground: #fff3f6;
+  --card: #251733;
+  --card-foreground: #fff3f6;
+  --popover: #1c1226;
+  --popover-foreground: #fff3f6;
+  --primary: #ff6584;
+  --primary-foreground: #ffffff;
+  --secondary: #3a1e35;
+  --secondary-foreground: #ffe3ea;
+  --muted: #2c1c30;
+  --muted-foreground: #d3a6b8;
+  --glass-bg: rgb(255 255 255 / 8%);
+  --glass-border: rgb(255 101 132 / 25%);
+  --surface: rgb(48 28 50 / 68%);
+  --surface-strong: rgb(58 34 60 / 82%);
+  --app-bg-start: #1a1222;
+  --app-bg-mid: #241531;
+  --app-bg-end: #34182f;
+  --shadow-soft: 0 20px 56px rgb(0 0 0 / 30%);
+  --stroke-power-off: rgb(255 141 163 / 35%);
+  --gradient-start-power-off: #3c1a33;
+  --gradient-end-power-off: #2a1220;
+  --stroke-power-on: #ff8da3;
+  --gradient-start-power-on: #6c63ff;
+  --gradient-end-power-on: #ff6584;
+  --profile-active: rgb(255 101 132 / 30%);
+  --stroke-profile-active: rgb(255 141 163 / 46%);
+  --profile-inactive: rgb(255 255 255 / 6%);
+  --stroke-profile-inactive: rgb(255 101 132 / 18%);
+  --stroke: rgb(255 101 132 / 24%);
+  --accent: #43203c;
+  --accent-foreground: #fff3f6;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: rgb(255 101 132 / 18%);
+  --input: rgb(255 101 132 / 22%);
+  --ring: #ff8da3;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #fbbf24;
+  --warning-foreground: #26112f;
+  --info: #60a5fa;
+  --chart-1: #ff6584;
+  --chart-2: #6c63ff;
+  --chart-3: #ff8da3;
+  --chart-4: #a78bfa;
+  --chart-5: #7c75ff;
+  --sidebar: #211531;
+  --sidebar-foreground: #fff3f6;
+  --sidebar-primary: #ff6584;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #43203c;
+  --sidebar-accent-foreground: #fff3f6;
+  --sidebar-border: rgb(255 101 132 / 24%);
+  --sidebar-ring: #ff8da3;
+  --glow-rgb: 255 101 132;
+}
