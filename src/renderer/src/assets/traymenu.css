@@ -1,0 +1,161 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.5rem;
+  --background: #fff7ff;
+  --foreground: #26112f;
+  --card: #fffaff;
+  --card-foreground: #26112f;
+  --popover: #fffaff;
+  --popover-foreground: #26112f;
+  --primary: #e6446a;
+  --primary-foreground: #ffffff;
+  --secondary: #ffe4ea;
+  --secondary-foreground: #5a2533;
+  --muted: #fdeef2;
+  --muted-foreground: #8a6472;
+  --stroke-power-on: #ffb3c0;
+  --gradient-start-power-on: #6c63ff;
+  --gradient-end-power-on: #ff6584;
+  --stroke: rgb(255 101 132 / 25%);
+  --glass-border: rgb(255 101 132 / 25%);
+  --surface: rgb(255 255 255 / 58%);
+  --shadow-soft: 0 18px 50px rgb(150 40 80 / 12%);
+  --accent: #ffd6de;
+  --accent-foreground: #5a2533;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgb(255 101 132 / 20%);
+  --input: rgb(255 101 132 / 22%);
+  --ring: #e6446a;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #26112f;
+}
+
+.dark {
+  --background: #1a1222;
+  --foreground: #fff3f6;
+  --card: #251733;
+  --card-foreground: #fff3f6;
+  --popover: #1c1226;
+  --popover-foreground: #fff3f6;
+  --primary: #ff6584;
+  --primary-foreground: #ffffff;
+  --secondary: #3a1e35;
+  --secondary-foreground: #ffe3ea;
+  --muted: #2c1c30;
+  --muted-foreground: #d3a6b8;
+  --stroke-power-on: #ff8da3;
+  --gradient-start-power-on: #6c63ff;
+  --gradient-end-power-on: #ff6584;
+  --stroke: rgb(255 101 132 / 28%);
+  --glass-border: rgb(255 101 132 / 25%);
+  --surface: rgb(48 28 50 / 72%);
+  --shadow-soft: 0 20px 56px rgb(0 0 0 / 30%);
+  --accent: #43203c;
+  --accent-foreground: #fff3f6;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: rgb(255 101 132 / 22%);
+  --input: rgb(255 101 132 / 22%);
+  --ring: #ff8da3;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #fbbf24;
+  --warning-foreground: #26112f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-stroke-power-on: var(--stroke-power-on);
+  --color-gradient-start-power-on: var(--gradient-start-power-on);
+  --color-gradient-end-power-on: var(--gradient-end-power-on);
+  --color-stroke: var(--stroke);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .glass-surface {
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      var(--shadow-soft),
+      inset 0 1px 0 rgb(255 255 255 / 14%);
+    backdrop-filter: blur(24px) saturate(1.25);
+  }
+}
+
+html {
+  background: none !important;
+  background-color: transparent !important;
+}
+
+body {
+  font-family:
+    'Inter',
+    'SF Pro Display',
+    'Microsoft YaHei',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+* {
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}

@@ -21,3 +21,9 @@ src/renderer/src/assets/app-logo.png  merge=ours
 # upstream's empty resources/default-theme.css so the legacy theme ships by
 # default, with no custom-css subscription header required.
 resources/default-theme.css           merge=ours
+
+# Custom tray-menu stylesheet. The tray window is NOT reached by the in-app
+# theme injection (insertCSS targets only the main/floating windows), so its
+# purple look is pinned here as a whole-file override of upstream's navy
+# traymenu.css. Keep its palette in sync with resources/default-theme.css.
+src/renderer/src/assets/traymenu.css  merge=ours
