@@ -20,8 +20,22 @@ name: Sync Upstream
 # Make fork changes on the `bitumi-clash` branch instead.
 #
 # A version bump flowing in from upstream is released by dispatching build.yml
-# explicitly: pushes made with GITHUB_TOKEN (force or not) never trigger another
-# workflow (GitHub's anti-recursion rule), and dispatch is the documented exception.
+# explicitly: workflow_dispatch is the documented exception that fires a build even
+# when the trigger came from inside Actions. build.yml's own push trigger cannot be
+# relied on here -- the overlay commit's parent IS the upstream tip, so its
+# package.json version equals HEAD~1's and build.yml's push-time diff sees "no
+# change". The explicit dispatch compares against the PREVIOUS main instead.
+#
+# PUSH CREDENTIAL: the rebuilt main can carry upstream's edits to files under
+# .github/workflows/. The built-in GITHUB_TOKEN is a GitHub App token and GitHub
+# App tokens are forbidden from creating/updating workflow files (no permission
+# grants this), so such a push is rejected. We therefore push with SYNC_TOKEN -- a
+# PAT/fine-grained token that carries the `workflow` scope (see repo secrets). It
+# falls back to GITHUB_TOKEN when unset, which works only for syncs that touch no
+# workflow file. Because SYNC_TOKEN is a user credential (not a GitHub App), its
+# force-push to main CAN fire build.yml's push trigger on package.json changes; that
+# run self-skips per the version-diff note above, so it is a harmless no-op and the
+# explicit dispatch remains the real release path.
 
 permissions:
   contents: write # force-push the rebuilt main
@@ -52,6 +66,11 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          # Persisted for the force-push below. SYNC_TOKEN is a PAT/fine-grained
+          # token with `workflow` scope so the push may modify .github/workflows/*;
+          # GITHUB_TOKEN (a GitHub App token) is forbidden from doing so. Falls back
+          # to GITHUB_TOKEN for syncs that touch no workflow file.
+          token: ${{ secrets.SYNC_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Rebuild main as upstream tip + fork overlay
         id: sync
