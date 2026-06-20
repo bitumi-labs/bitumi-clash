@@ -1,0 +1,139 @@
+name: Sync Upstream
+
+# Keeps this fork's `main` in step with upstream. Rather than squashing upstream's
+# commits into a parentless commit (which freezes the merge-base and makes GitHub
+# show "N commits behind" forever), each run REBUILDS main as:
+#
+#     <upstream tip>  <-  <one "overlay" commit of fork identity>
+#
+# main is hard-reset to upstream's tip, the fork overlay is laid on top as a single
+# commit, and main is force-pushed. upstream/main is therefore always an ancestor of
+# main -> GitHub shows "0 behind", with no merge commit.
+#
+# The fork's entire customization surface lives on the orphan `bitumi-clash` branch
+# (icons, branding.json, the pinned package.json identity fields, this workflow, and
+# tools/apply-overlay.sh). branding.json drives every brand string in code/build, so
+# the overlay carries NO source patches. tools/apply-overlay.sh is the single source
+# of truth for how the overlay is applied; this job fetches and runs it.
+#
+# NOTE: main is machine-managed - a direct push to main is wiped on the next sync.
+# Make fork changes on the `bitumi-clash` branch instead.
+#
+# A version bump flowing in from upstream is released by dispatching build.yml
+# explicitly: pushes made with GITHUB_TOKEN (force or not) never trigger another
+# workflow (GitHub's anti-recursion rule), and dispatch is the documented exception.
+
+permissions:
+  contents: write # force-push the rebuilt main
+  actions: write # dispatch build.yml on a version bump
+  issues: write # open an issue if a sync fails
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
+  workflow_dispatch:
+
+# Never run two syncs at once; let an in-flight sync finish rather than cancel it.
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: kirisame-meguru/clashapp
+  UPSTREAM_BRANCH: main
+  OVERLAY_BRANCH: bitumi-clash
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (full history)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Rebuild main as upstream tip + fork overlay
+        id: sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git remote get-url upstream >/dev/null 2>&1 || \
+            git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --no-tags upstream "${UPSTREAM_BRANCH}"
+          git fetch --no-tags origin "${OVERLAY_BRANCH}"
+
+          # Capture the pre-sync state BEFORE the overlay rewrites main.
+          OLD_MAIN=$(git rev-parse origin/main)
+          OLD_VERSION=$(git show "origin/main:package.json" | jq -r '.version')
+          TIP=$(git rev-parse "upstream/${UPSTREAM_BRANCH}")
+
+          # Apply the overlay using the canonical script from the overlay branch.
+          git show "origin/${OVERLAY_BRANCH}:tools/apply-overlay.sh" > "${RUNNER_TEMP}/apply-overlay.sh"
+          OVERLAY_REF="origin/${OVERLAY_BRANCH}" \
+          UPSTREAM_REF="upstream/${UPSTREAM_BRANCH}" \
+            bash "${RUNNER_TEMP}/apply-overlay.sh"
+
+          # Nothing to do if the rebuilt tree matches what main already has
+          # (no new upstream commits AND no change on the overlay branch).
+          if git diff --cached --quiet "$OLD_MAIN"; then
+            echo "Rebuilt main is identical to origin/main; nothing to sync."
+            echo "synced=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          NEW_VERSION=$(jq -r '.version' package.json)
+          git commit -m "chore(branding): overlay fork identity onto upstream ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} (${TIP:0:12})"
+          git push --force-with-lease=main:"$OLD_MAIN" origin HEAD:main
+
+          echo "synced=true" >> "$GITHUB_OUTPUT"
+          echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+            echo "Version bump: ${OLD_VERSION} -> ${NEW_VERSION}"
+            echo "version_bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Synced with no version change (${NEW_VERSION})."
+            echo "version_bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger release build on version bump
+        if: steps.sync.outputs.version_bumped == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Dispatching build.yml to release ${{ steps.sync.outputs.new_version }}."
+          # Pin --repo to THIS fork: the sync added an `upstream` remote, and gh would
+          # otherwise resolve the base repo to upstream (-> 403, no access).
+          gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref main -f version="${{ steps.sync.outputs.new_version }}"
+
+      - name: Open issue on sync failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          OPEN=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "Upstream overlay sync failed"' --json number --jq 'length')
+          if [ "${OPEN:-0}" -gt 0 ]; then
+            echo "An open sync-failure issue already exists; not creating another."
+            exit 0
+          fi
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Upstream overlay sync failed against ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}" \
+            --body "$(cat <<EOF
+          The **Sync Upstream** workflow could not rebuild \`main\` as upstream tip + fork overlay.
+
+          The overlay does no line-level merge (it copies fork-owned files and overlays a few \`package.json\` fields), so this is not a merge conflict. Likely causes:
+          - a copy-set path listed in the overlay \`.gitattributes\` is missing on the \`${OVERLAY_BRANCH}\` branch,
+          - upstream renamed or removed a pinned \`package.json\` field, or
+          - \`branding.json\` drifted from what the upstream build expects.
+
+          Fix on the \`${OVERLAY_BRANCH}\` branch, then re-run this workflow.
+
+          _Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}_
+          EOF
+          )"

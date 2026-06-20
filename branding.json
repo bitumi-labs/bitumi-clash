@@ -1,0 +1,11 @@
+{
+  "appId": "com.bitumi.app",
+  "productName": "Bitumi Clash",
+  "appName": "Bitumi Clash",
+  "packageName": "bitumi-clash",
+  "protocolScheme": "bitumi",
+  "protocolName": "Bitumi URI Scheme",
+  "userAgentProduct": "bitumi",
+  "updateUserAgent": "Bitumi-Clash",
+  "updateRepo": "bitumi-labs/bitumi-clash"
+}
