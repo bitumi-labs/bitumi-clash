@@ -16,3 +16,8 @@ build/installerIcon*                  merge=ours
 resources/icon*                       merge=ours
 resources/app_icon_source.svg         merge=ours
 src/renderer/src/assets/app-logo.png  merge=ours
+
+# Default theme baked into the build (the fork's purple/coral look). Replaces
+# upstream's empty resources/default-theme.css so the legacy theme ships by
+# default, with no custom-css subscription header required.
+resources/default-theme.css           merge=ours
