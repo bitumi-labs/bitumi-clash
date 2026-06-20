@@ -10,6 +10,10 @@
 
 branding.json                         merge=ours
 
+# Fork's README: a trimmed Bitumi Clash landing page, overwritten onto main on
+# every sync in place of upstream's.
+README.md                             merge=ours
+
 # App / installer / tray icons and the in-app logo (the fork's visual identity).
 build/icon.*                          merge=ours
 build/installerIcon*                  merge=ours
