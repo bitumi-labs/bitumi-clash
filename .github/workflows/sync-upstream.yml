@@ -100,6 +100,13 @@ jobs:
           done < <(grep -E 'merge=ours' .gitattributes | grep -v '^[[:space:]]*#' | awk '{print $1}')
           EXCLUDES=()
           for pat in "${PATTERNS[@]}"; do EXCLUDES+=(":(exclude)$pat"); done
+          # package.json is reconciled field-by-field below, never patched. Its fork-owned
+          # identity lines sit right next to the version that bumps on every upstream
+          # release, so a single diff hunk covers both - and --3way then conflicts on the
+          # identity lines every time. Excluding it here keeps it out of the apply (so the
+          # sync can't fail on it); the explicit rebuild after the apply keeps our identity
+          # and takes the version (and everything else) from upstream.
+          EXCLUDES+=(":(exclude)package.json")
 
           # The squash: upstream's changes since the last sync as one parentless
           # delta - no merge commit. --3way self-heals context drift and reports a
@@ -122,20 +129,24 @@ jobs:
             git checkout "$PRE" -- "$pat" 2>/dev/null || true
           done
 
-          # Fork-owned package.json identity. We can't guard these with the whole-file
-          # `ours` driver: the version bump on each upstream release must still flow in.
-          # So pin just these keys back to our pre-sync values and let version (and the
-          # rest) sync. Only rewrites package.json when upstream actually changed one of
-          # them - otherwise the merged result equals the current file and we skip it.
+          # Reconcile package.json (excluded from the patch above). Identity fields stay
+          # ours; version, dependencies and everything else track upstream. We rebuild the
+          # file from upstream's tip with our identity overlaid rather than patching it: the
+          # identity lines neighbour the version bump that lands every release, so feeding
+          # package.json through `git apply --3way` conflicts on them - and the old
+          # post-apply pin never got the chance to run, because that conflict aborted the
+          # sync first. The fork only ever customizes these keys; any other package.json
+          # field is taken from upstream as-is. version is deliberately NOT pinned, so each
+          # upstream release still flows in and triggers the build below.
           PKG_PIN_KEYS='["name","description","author","homepage"]'
           PINNED=$(git show "$PRE:package.json" | jq --argjson keys "$PKG_PIN_KEYS" \
             'with_entries(select(.key as $k | $keys | index($k) != null))')
-          if [ "$(jq --argjson pin "$PINNED" '. + $pin' package.json)" != "$(jq '.' package.json)" ]; then
-            # tmp + mv: never redirect into the same file jq is reading (that truncates it first).
-            jq --argjson pin "$PINNED" '. + $pin' package.json > package.json.tmp
-            mv package.json.tmp package.json
+          RECONCILED=$(git show "$TIP:package.json" | jq --argjson pin "$PINNED" '. + $pin')
+          # Compare normalized JSON so we only rewrite (and reformat) on a real content change.
+          if [ "$RECONCILED" != "$(jq '.' package.json)" ]; then
+            printf '%s\n' "$RECONCILED" > package.json
             git add package.json
-            echo "Pinned fork-owned package.json identity fields (${PKG_PIN_KEYS}) after sync."
+            echo "Reconciled package.json: kept fork identity (${PKG_PIN_KEYS}), synced the rest from upstream."
           fi
 
           # Record how far we have synced so the next run diffs from here. This is
