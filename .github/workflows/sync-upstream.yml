@@ -122,6 +122,22 @@ jobs:
             git checkout "$PRE" -- "$pat" 2>/dev/null || true
           done
 
+          # Fork-owned package.json identity. We can't guard these with the whole-file
+          # `ours` driver: the version bump on each upstream release must still flow in.
+          # So pin just these keys back to our pre-sync values and let version (and the
+          # rest) sync. Only rewrites package.json when upstream actually changed one of
+          # them - otherwise the merged result equals the current file and we skip it.
+          PKG_PIN_KEYS='["name","description","author","homepage"]'
+          PINNED=$(git show "$PRE:package.json" | jq --argjson keys "$PKG_PIN_KEYS" \
+            'with_entries(select(.key as $k | $keys | index($k) != null))')
+          if [ "$(jq --argjson pin "$PINNED" '. + $pin' package.json)" != "$(jq '.' package.json)" ]; then
+            # tmp + mv: never redirect into the same file jq is reading (that truncates it first).
+            jq --argjson pin "$PINNED" '. + $pin' package.json > package.json.tmp
+            mv package.json.tmp package.json
+            git add package.json
+            echo "Pinned fork-owned package.json identity fields (${PKG_PIN_KEYS}) after sync."
+          fi
+
           # Record how far we have synced so the next run diffs from here. This is
           # always a change (TIP != BASE), so there is always something to commit.
           echo "$TIP" > "$STATE_FILE"
