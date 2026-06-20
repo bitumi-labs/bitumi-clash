@@ -19,12 +19,18 @@ name: Sync Upstream
 # NOTE: main is machine-managed - a direct push to main is wiped on the next sync.
 # Make fork changes on the `bitumi-clash` branch instead.
 #
-# A version bump flowing in from upstream is released by dispatching build.yml
-# explicitly: workflow_dispatch is the documented exception that fires a build even
-# when the trigger came from inside Actions. build.yml's own push trigger cannot be
-# relied on here -- the overlay commit's parent IS the upstream tip, so its
-# package.json version equals HEAD~1's and build.yml's push-time diff sees "no
-# change". The explicit dispatch compares against the PREVIOUS main instead.
+# RELEASING A VERSION BUMP: build.yml fires a release from its own push trigger,
+# which detects a bump by diffing package.json at HEAD vs HEAD~1. A single overlay
+# commit can't expose that -- its parent is the upstream tip, whose version already
+# equals the overlay's -- so on a bump this job lays the overlay down as TWO commits:
+#
+#     <upstream tip>  <-  <overlay @ OLD version>  <-  <bump to NEW version>   (main)
+#
+# The tip is then a genuine version-bump commit (HEAD~1 = OLD, HEAD = NEW) whose tree
+# already carries the fork branding, so build.yml's push trigger fires on exactly the
+# branded commit -- no workflow_dispatch needed. The upstream tip stays an ancestor
+# of main (it is HEAD~2), so GitHub still shows "0 behind". When upstream's version
+# is unchanged, a single overlay commit is pushed as before and no build fires.
 #
 # PUSH CREDENTIAL: the rebuilt main can carry upstream's edits to files under
 # .github/workflows/. The built-in GITHUB_TOKEN is a GitHub App token and GitHub
@@ -32,14 +38,12 @@ name: Sync Upstream
 # grants this), so such a push is rejected. We therefore push with SYNC_TOKEN -- a
 # PAT/fine-grained token that carries the `workflow` scope (see repo secrets). It
 # falls back to GITHUB_TOKEN when unset, which works only for syncs that touch no
-# workflow file. Because SYNC_TOKEN is a user credential (not a GitHub App), its
-# force-push to main CAN fire build.yml's push trigger on package.json changes; that
-# run self-skips per the version-diff note above, so it is a harmless no-op and the
-# explicit dispatch remains the real release path.
+# workflow file. SYNC_TOKEN is a user credential (not a GitHub App), so its
+# force-push to main is allowed to fire build.yml's push trigger -- which is exactly
+# how the release build is launched.
 
 permissions:
   contents: write # force-push the rebuilt main
-  actions: write # dispatch build.yml on a version bump
   issues: write # open an issue if a sync fails
 
 on:
@@ -104,30 +108,36 @@ jobs:
             exit 0
           fi
 
+          OVERLAY_MSG="chore(branding): overlay fork identity onto upstream ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} (${TIP:0:12})"
           NEW_VERSION=$(jq -r '.version' package.json)
-          git commit -m "chore(branding): overlay fork identity onto upstream ${UPSTREAM_REPO}@${UPSTREAM_BRANCH} (${TIP:0:12})"
+
+          if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+            # Upstream bumped the version. Lay the overlay down as two commits so the
+            # tip is a real version-bump commit that build.yml's push trigger detects
+            # (HEAD~1 = OLD, HEAD = NEW), while the upstream tip stays an ancestor of
+            # main. The branding lands on the parent (pinned at the OLD version); the
+            # tip is a pure version bump whose tree still carries that branding.
+            jq --arg v "$OLD_VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+            git add package.json
+            git commit -m "$OVERLAY_MSG"
+
+            jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+            git add package.json
+            git commit -m "chore(release): bump version to ${NEW_VERSION}"
+
+            echo "Version bump: ${OLD_VERSION} -> ${NEW_VERSION}"
+            echo "version_bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "$OVERLAY_MSG"
+            echo "Synced with no version change (${NEW_VERSION})."
+            echo "version_bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
           git push --force-with-lease=main:"$OLD_MAIN" origin HEAD:main
 
           echo "synced=true" >> "$GITHUB_OUTPUT"
           echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
-            echo "Version bump: ${OLD_VERSION} -> ${NEW_VERSION}"
-            echo "version_bumped=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Synced with no version change (${NEW_VERSION})."
-            echo "version_bumped=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Trigger release build on version bump
-        if: steps.sync.outputs.version_bumped == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Dispatching build.yml to release ${{ steps.sync.outputs.new_version }}."
-          # Pin --repo to THIS fork: the sync added an `upstream` remote, and gh would
-          # otherwise resolve the base repo to upstream (-> 403, no access).
-          gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref main -f version="${{ steps.sync.outputs.new_version }}"
 
       - name: Open issue on sync failure
         if: failure()
