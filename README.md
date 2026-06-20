@@ -4,6 +4,7 @@
   <img src="./build/icon.png" alt="ClashApp" width="128" />
   <br>
   <br>
+  <img src="https://img.shields.io/badge/ai-slop-gray?labelColor=e4589e" alt="ai slop">
   <a href="https://github.com/kirisame-meguru/clashapp/releases">
     <img src="https://img.shields.io/github/release/kirisame-meguru/clashapp/all.svg" alt="Releases">
   </a>
