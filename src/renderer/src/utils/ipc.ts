@@ -524,6 +524,20 @@ export async function setMainLanguage(lang: string): Promise<void> {
   await window.electron.ipcRenderer.invoke('setLanguage', lang)
 }
 
+export async function checkUpdate(): Promise<AppVersion | undefined> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('checkUpdate'))
+}
+
+export async function downloadAndInstallUpdate(version: string): Promise<void> {
+  return ipcErrorWrapper(
+    await window.electron.ipcRenderer.invoke('downloadAndInstallUpdate', version)
+  )
+}
+
+export async function cancelUpdate(): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('cancelUpdate'))
+}
+
 // Override window.alert to use toast notifications instead of system dialogs
 async function alert<T>(msg: T): Promise<void> {
   const { notifyError } = await import('./notify')

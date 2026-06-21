@@ -54,6 +54,7 @@ import {
   checkCorePermission
 } from '../core/manager'
 import { triggerSysProxy } from '../sys/sysproxy'
+import { checkUpdate, downloadAndInstallUpdate, cancelUpdate } from '../resolve/autoUpdater'
 import {
   checkElevateTask,
   deleteElevateTask,
@@ -354,4 +355,9 @@ export function registerIpcMainHandlers(): void {
     setNotQuitDialog()
     app.quit()
   })
+  ipcMain.handle('checkUpdate', ipcErrorWrapper(checkUpdate))
+  ipcMain.handle('downloadAndInstallUpdate', (_e, version) =>
+    ipcErrorWrapper(downloadAndInstallUpdate)(version)
+  )
+  ipcMain.handle('cancelUpdate', ipcErrorWrapper(cancelUpdate))
 }

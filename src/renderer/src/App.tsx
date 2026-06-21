@@ -2,12 +2,14 @@ import { toast } from 'sonner'
 import { useTheme } from 'next-themes'
 import React, { useEffect, useState } from 'react'
 import { useRoutes } from 'react-router-dom'
+import useSWR from 'swr'
 import './i18n'
 import { useTranslation } from 'react-i18next'
 import routes from '@renderer/routes'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
   applyTheme,
+  checkUpdate,
   needsFirstRunAdmin,
   restartAsAdmin,
   setNativeTheme
@@ -22,16 +24,26 @@ import { attachTrafficStore } from '@renderer/store/traffic-store'
 import { attachLogsStore } from '@renderer/store/logs-store'
 import { attachCoreLifecycleStore } from '@renderer/store/core-lifecycle-store'
 import { attachStatusLogStore } from '@renderer/store/status-log-store'
+import { attachUpdaterStore } from '@renderer/store/updater-store'
+import UpdateBanner from '@renderer/components/updater/update-banner'
 
 const App: React.FC = () => {
   const { t } = useTranslation()
   const { appConfig } = useAppConfig()
   const {
     appTheme = 'system',
-    customTheme
+    customTheme,
+    autoCheckUpdate
   } = appConfig || {}
   const { setTheme, systemTheme } = useTheme()
   const page = useRoutes(routes)
+  const { data: latest } = useSWR(
+    autoCheckUpdate ? ['checkUpdate'] : undefined,
+    autoCheckUpdate ? checkUpdate : (): undefined => {},
+    {
+      refreshInterval: 1000 * 60 * 10
+    }
+  )
 
   useEffect(() => {
     const detachConnections = attachConnectionsStore()
@@ -39,12 +51,14 @@ const App: React.FC = () => {
     const detachLogs = attachLogsStore()
     const detachCoreLifecycle = attachCoreLifecycleStore()
     const detachStatusLog = attachStatusLogStore()
+    const detachUpdater = attachUpdaterStore()
     return (): void => {
       detachConnections()
       detachTraffic()
       detachLogs()
       detachCoreLifecycle()
       detachStatusLog()
+      detachUpdater()
     }
   }, [])
 
@@ -148,6 +162,7 @@ const App: React.FC = () => {
         />
       )}
       <HwidLimitAlert />
+      {latest?.version && <UpdateBanner latest={latest} />}
       {platform === 'darwin' && (
         <div className="fixed top-0.5 -left-1 h-10 flex items-center pl-3 z-100 app-drag">
           <WindowControls />

@@ -23,6 +23,7 @@ const GeneralConfig: React.FC<GeneralConfigProps> = (props) => {
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
     silentStart = false,
+    autoCheckUpdate = false,
     disableGPU = false
   } = appConfig || {}
 
@@ -72,11 +73,19 @@ const GeneralConfig: React.FC<GeneralConfigProps> = (props) => {
             }}
           />
         </SettingItem>
-        <SettingItem title={t('settings.general.silentStart')} divider={showHiddenSettings}>
+        <SettingItem title={t('settings.general.silentStart')} divider>
           <Switch
             checked={silentStart}
             onCheckedChange={(value) => {
               patchAppConfig({ silentStart: value })
+            }}
+          />
+        </SettingItem>
+        <SettingItem title={t('settings.general.autoCheckUpdate')} divider={showHiddenSettings}>
+          <Switch
+            checked={autoCheckUpdate}
+            onCheckedChange={(value) => {
+              patchAppConfig({ autoCheckUpdate: value })
             }}
           />
         </SettingItem>

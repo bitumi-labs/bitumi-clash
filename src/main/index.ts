@@ -27,7 +27,6 @@ import { controledMihomoConfigPath, exePath, taskDir } from './utils/dirs'
 import { showFloatingWindow } from './resolve/floatingWindow'
 import { getAppConfigSync } from './config/app'
 import { t } from './utils/i18n'
-import { checkForAppUpdates } from './core/appUpdater'
 import { productName, appId, deepLinkPrefix, deepLinkPattern } from '../shared/branding'
 
 let quitTimeout: NodeJS.Timeout | null = null
@@ -442,7 +441,6 @@ app.whenReady().then(async () => {
   }
 
   await Promise.all(uiTasks)
-  void checkForAppUpdates(mainWindow)
 
   await Promise.all([coreStartPromise])
 

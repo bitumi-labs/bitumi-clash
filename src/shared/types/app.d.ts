@@ -71,6 +71,7 @@ interface AppConfig {
   appTheme: AppTheme
   customTheme?: string
   silentStart: boolean
+  autoCheckUpdate?: boolean
   autoCloseConnection: boolean
   expandProxyGroups?: boolean
   sysProxy: ISysProxyConfig
