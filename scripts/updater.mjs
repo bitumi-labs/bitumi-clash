@@ -44,7 +44,8 @@ if (process.env.SKIP_CHANGELOG !== '1') {
   changelog += link(assetUrl(`${assetProductName}_aarch64.pkg.tar.xz`), 'PACMAN', 'ARM64', 'archlinux')
 }
 writeFileSync('latest.yml', yaml.stringify(latest))
-// The GitHub release page already shows the version as the release title, so strip
-// the leading "## <version>" heading from the body to avoid a duplicate header (and
-// its separator). latest.yml keeps the full section for the in-app update dialog.
-writeFileSync('changelog.md', changelog.replace(/^#{1,6}\s.*\r?\n+/, ''))
+// The GitHub release page already shows the version as the release title, so replace
+// the leading "## <version>" heading with a horizontal rule: it drops the duplicate
+// version number but keeps a separator above the notes. latest.yml keeps the full
+// section for the in-app update dialog.
+writeFileSync('changelog.md', changelog.replace(/^#{1,6}\s.*\r?\n+/, '---\n\n'))
