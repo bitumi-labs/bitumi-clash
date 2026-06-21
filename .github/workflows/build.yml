@@ -256,10 +256,12 @@ jobs:
             latest.yml
             changelog.md
 
-  # Rolling pre-release for main builds (manual dispatch / version bump).
+  # Rolling pre-release for on-demand beta builds. Only fires on a manual
+  # dispatch with no version typed in; a specified version cuts a real release
+  # instead, so the pre-release is intentionally skipped to avoid double-publishing.
   pre-release:
     needs: [setup, build]
-    if: needs.setup.outputs.is_nightly != 'true'
+    if: github.event_name == 'workflow_dispatch' && needs.setup.outputs.version == ''
     runs-on: windows-latest
     steps:
       - name: Checkout

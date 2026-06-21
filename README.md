@@ -89,6 +89,7 @@ Headers are matched **case-insensitively by suffix** (the app checks `header.toL
 | `profile-logo` | string (URL) | Logo image URL. The image is downloaded (through the profile's proxy when enabled) and embedded as a base64 data URI; falls back to the raw URL if the download fails. |
 | `support-url` | string (URL) | Stored as the profile's support link, and used in the HWID-limit error message (see below). |
 | `global-mode` | boolean | Enables Global outbound mode for the profile. Any value other than `false` (case-insensitive) enables it; `false` disables it. |
+| `x-clashapp-global-mode-warn` | boolean | Show the warning icon next to the Global slider for this profile. Enabled only when the value is exactly `true` (case-insensitive); off by default. |
 | `announce` | string | Announcement text shown for the profile. Supports a `base64:` prefix; literal `\n` sequences are turned into line breaks. |
 | `custom-css` | string (URL) | URL of a custom CSS theme. Downloaded (through the profile's proxy when enabled) and applied as the profile's theme. |
 | `x-clashapp-unsupported-cfg-warn` | boolean | Opt this profile in to the "changed settings" warning. Enabled only when the value is exactly `true` (case-insensitive); off by default. |
@@ -97,7 +98,7 @@ Headers are matched **case-insensitively by suffix** (the app checks `header.toL
 | `x-hwid-max-devices-reached` | boolean | Same as `x-hwid-limit`; either header set to `true` triggers the HWID-limit error. The accompanying `support-url` is shown in that message. |
 
 Notes:
-- Boolean headers are compared as plain strings. `global-mode` and `x-clashapp-unsupported-cfg-warn` are lower-cased before comparison, while the two `x-hwid-*` headers require the exact string `true`.
+- Boolean headers are compared as plain strings. `global-mode`, `x-clashapp-global-mode-warn`, and `x-clashapp-unsupported-cfg-warn` are lower-cased before comparison, while the two `x-hwid-*` headers require the exact string `true`.
 
 ## Development
 

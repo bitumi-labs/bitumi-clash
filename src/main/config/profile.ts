@@ -330,6 +330,14 @@ export async function createProfile(
       if (globalModeKey) {
         newItem.globalMode = headers[globalModeKey].toLowerCase() !== 'false'
       }
+      // Fixed server-contract header (x-clashapp-global-mode-warn): opt in to
+      // surfacing the Global slider's warning icon for this profile.
+      const globalModeWarnKey = Object.keys(headers).find((k) =>
+        k.toLowerCase().endsWith('global-mode-warn')
+      )
+      if (globalModeWarnKey) {
+        newItem.globalModeWarn = headers[globalModeWarnKey].toLowerCase() === 'true'
+      }
       // Fixed server-contract header (x-clashapp-unsupported-cfg-warn): opt in to
       // surfacing the "changed settings" warning for this profile.
       const unsupportedCfgWarnKey = Object.keys(headers).find((k) =>

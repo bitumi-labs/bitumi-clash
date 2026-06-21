@@ -488,20 +488,22 @@ const Home: React.FC = () => {
                   >
                     {t('pages.home.fullMode')}
                   </span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={t('pages.home.fullModeTooltip')}
-                        className="flex items-center text-amber-500/90 transition-colors hover:text-amber-400 cursor-help"
-                      >
-                        <TriangleAlert className="size-3.5" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[15rem]">
-                      {t('pages.home.fullModeTooltip')}
-                    </TooltipContent>
-                  </Tooltip>
+                  {currentProfile?.globalModeWarn === true && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={t('pages.home.fullModeTooltip')}
+                          className="flex items-center text-amber-500/90 transition-colors hover:text-amber-400 cursor-help"
+                        >
+                          <TriangleAlert className="size-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[15rem]">
+                        {t('pages.home.fullModeTooltip')}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                   <Switch
                     size="sm"
                     checked={isGlobal}

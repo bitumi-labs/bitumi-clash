@@ -140,6 +140,8 @@ interface ProfileItem {
   logo?: string
   supportUrl?: string
   globalMode?: boolean
+  // From x-clashapp-global-mode-warn: gate the Global slider's warning icon.
+  globalModeWarn?: boolean
   customCss?: string
   // From x-clashapp-custom-tray-menu: tri-state preference applied once at add.
   customTrayMenu?: boolean
