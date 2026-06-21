@@ -1,3 +1,12 @@
+## 1.0.7
+
+Maintenance release — release-tooling and documentation fixes; no functional app changes since 1.0.6.
+
+### Build & release
+
+- removed the duplicate version heading from generated GitHub release notes
+- backfilled and corrected the changelog for past releases (0.0.4, 1.0.1–1.0.6)
+
 ## 1.0.6
 
 Maintenance release — no functional changes since 1.0.5 (version bump to re-trigger the release build).
