@@ -26,6 +26,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { controledMihomoConfigPath, exePath, taskDir } from './utils/dirs'
 import { closeDb } from './utils/db'
 import { showFloatingWindow } from './resolve/floatingWindow'
+import { safeSend } from './utils/safeSend'
 import { getAppConfigSync } from './config/app'
 import { t } from './utils/i18n'
 import { productName, appId, deepLinkPrefix, deepLinkPattern } from '../shared/branding'
@@ -483,10 +484,25 @@ async function handleDeepLink(url: string): Promise<void> {
           throw new Error(t('error.missingUrlParam'))
         }
 
-        await addProfileItem({
-          type: 'remote',
-          name: profileName ?? undefined,
-          url: profileUrl
+        // Bracket the import with a status-log session so the home screen narrates a
+        // deep-link import just like the in-app add flow (begin → steps → final line),
+        // instead of leaving the "No profile" placeholder covering the log. The granular
+        // steps in between already stream from addProfileItem via emitProgress.
+        safeSend(mainWindow, 'actionStatus', { phase: 'begin' })
+        let changed: boolean
+        try {
+          changed = await addProfileItem({
+            type: 'remote',
+            name: profileName ?? undefined,
+            url: profileUrl
+          })
+        } catch (e) {
+          safeSend(mainWindow, 'actionStatus', { phase: 'fail', key: 'addFailed' })
+          throw e
+        }
+        safeSend(mainWindow, 'actionStatus', {
+          phase: 'finish',
+          key: changed ? 'added' : 'unchanged'
         })
         if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isLoading()) {
           mainWindow.webContents.send('profileConfigUpdated')

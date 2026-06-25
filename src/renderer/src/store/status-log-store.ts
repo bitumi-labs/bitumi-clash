@@ -73,6 +73,7 @@ let attached = false
 // and returns an unsubscribe function — `removeListener` with our own reference
 // would never match, so we must keep and call the returned disposer.
 let disposeIpc: (() => void) | null = null
+let disposeStatus: (() => void) | null = null
 
 export const attachStatusLogStore = (): (() => void) => {
   if (attached) {
@@ -91,6 +92,21 @@ export const attachStatusLogStore = (): (() => void) => {
   )
   disposeIpc = typeof off === 'function' ? off : null
 
+  // Deep-link imports (clashapp://) run entirely in the main process, so they can't
+  // call begin()/finish() in-renderer like the add/refresh buttons do. The main
+  // process brackets them with this event instead, opening and closing a session so
+  // the home screen narrates them the same way.
+  const offStatus = window.electron.ipcRenderer.on(
+    'actionStatus',
+    (_event, payload: { phase?: 'begin' | 'finish' | 'fail'; key?: string }): void => {
+      const store = useStatusLogStore.getState()
+      if (payload?.phase === 'begin') store.begin()
+      else if (payload?.phase === 'finish') store.finish(payload.key ?? 'updated')
+      else if (payload?.phase === 'fail') store.fail(payload.key ?? 'failed')
+    }
+  )
+  disposeStatus = typeof offStatus === 'function' ? offStatus : null
+
   return (): void => {
     if (!attached) return
     attached = false
@@ -99,6 +115,12 @@ export const attachStatusLogStore = (): (() => void) => {
       disposeIpc = null
     } else {
       window.electron.ipcRenderer.removeAllListeners('actionProgress')
+    }
+    if (disposeStatus) {
+      disposeStatus()
+      disposeStatus = null
+    } else {
+      window.electron.ipcRenderer.removeAllListeners('actionStatus')
     }
     cancelClearTimer()
     useStatusLogStore.setState({ active: false, entries: [] })
