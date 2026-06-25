@@ -44,6 +44,7 @@ import {
   setProfileConfig,
   convertMrsRuleset
 } from '../config'
+import { getForeignCoreWarning } from '../core/detectOtherCores'
 import { probeAndUpdateRuleProviders } from '../core/ruleProviderProbe'
 import {
   manualGrantCorePermition,
@@ -87,7 +88,13 @@ import {
   getCurrentProfileStr
 } from '../core/factory'
 import { getInterfaces } from '../sys/interface'
-import { closeTrayIcon, copyEnv, setDockVisible, showTrayIcon, updateTrayIcon } from '../resolve/tray'
+import {
+  closeTrayIcon,
+  copyEnv,
+  setDockVisible,
+  showTrayIcon,
+  updateTrayIcon
+} from '../resolve/tray'
 import { registerShortcut } from '../resolve/shortcut'
 import {
   closeMainWindow,
@@ -209,8 +216,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('getControledMihomoConfig', (_e, force) =>
     ipcErrorWrapper(getControledMihomoConfig)(force)
   )
-  ipcMain.handle('patchControledMihomoConfig', (_e, config) =>
-    ipcErrorWrapper(patchControledMihomoConfig)(config)
+  ipcMain.handle('patchControledMihomoConfig', (_e, config, options) =>
+    ipcErrorWrapper(patchControledMihomoConfig)(config, options)
   )
   ipcMain.handle('getProfileConfig', (_e, force) => ipcErrorWrapper(getProfileConfig)(force))
   ipcMain.handle('setProfileConfig', (_e, config) => ipcErrorWrapper(setProfileConfig)(config))
@@ -343,6 +350,7 @@ export function registerIpcMainHandlers(): void {
     mainWindow?.close()
   })
   ipcMain.handle('needsFirstRunAdmin', () => needsFirstRunAdmin)
+  ipcMain.handle('getForeignCoreWarning', () => ipcErrorWrapper(getForeignCoreWarning)())
   ipcMain.handle('restartAsAdmin', async () => {
     if (process.platform !== 'win32') return
     const { exec } = await import('child_process')
@@ -350,9 +358,10 @@ export function registerIpcMainHandlers(): void {
     const args = process.argv.slice(1)
     const escapedExePath = exePath.replace(/'/g, "''")
     const argsString = args.map((a) => a.replace(/'/g, "''")).join("' '")
-    const command = args.length > 0
-      ? `powershell -NoProfile -Command "Start-Process -FilePath '${escapedExePath}' -ArgumentList '${argsString}' -Verb RunAs"`
-      : `powershell -NoProfile -Command "Start-Process -FilePath '${escapedExePath}' -Verb RunAs"`
+    const command =
+      args.length > 0
+        ? `powershell -NoProfile -Command "Start-Process -FilePath '${escapedExePath}' -ArgumentList '${argsString}' -Verb RunAs"`
+        : `powershell -NoProfile -Command "Start-Process -FilePath '${escapedExePath}' -Verb RunAs"`
     exec(command, { windowsHide: true })
     setNotQuitDialog()
     app.quit()

@@ -19,10 +19,30 @@ export async function getControledMihomoConfig(force = false): Promise<Partial<M
   return controledMihomoConfig
 }
 
-export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): Promise<void> {
-  emitProgress('patchingConfig')
+export async function patchControledMihomoConfig(
+  patch: Partial<MihomoConfig>,
+  options?: { bypassForeignCoreCheck?: boolean }
+): Promise<{ blocked: boolean }> {
   await getControledMihomoConfig()
   const previousTunEnabled = controledMihomoConfig.tun?.enable ?? false
+
+  // Gate turning the VPN on: if another mihomo core is already running it would hijack
+  // routing. Bail out *before* emitting any progress or touching the config/core, so the
+  // entire connect is suspended — nothing is uploaded and the caller can stop. Push a warning
+  // and report `blocked`; the renderer's "Ignore" re-issues this call with
+  // bypassForeignCoreCheck set, so it goes through next time.
+  if (!options?.bypassForeignCoreCheck && patch.tun?.enable === true && !previousTunEnabled) {
+    const { getForeignCoreWarning } = await import('../core/detectOtherCores')
+    const warning = await getForeignCoreWarning()
+    if (warning) {
+      const { mainWindow } = await import('..')
+      const { safeSend } = await import('../utils/safeSend')
+      safeSend(mainWindow, 'foreign-core-warning', warning)
+      return { blocked: true }
+    }
+  }
+
+  emitProgress('patchingConfig')
   const patchToMerge = JSON.parse(JSON.stringify(patch)) as Partial<MihomoConfig>
   const { controlDns = false, controlSniff = false, controlTun = false } = await getAppConfig()
   if (!controlDns) {
@@ -86,4 +106,6 @@ export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): 
   } catch {
     // running core may not be ready; changes will apply on next restart/reload
   }
+
+  return { blocked: false }
 }

@@ -10,12 +10,16 @@ import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
   applyTheme,
   checkUpdate,
+  getForeignCoreWarning,
   needsFirstRunAdmin,
   restartAsAdmin,
   setNativeTheme
 } from '@renderer/utils/ipc'
 import { platform } from '@renderer/utils/init'
+import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
+import { useForeignCoreStore, type ForeignCoreWarning } from '@renderer/store/foreign-core-store'
 import ConfirmModal from '@renderer/components/base/base-confirm'
+import ForeignCoreAlert from '@renderer/components/base/foreign-core-alert'
 import { SidebarProvider } from '@renderer/components/ui/sidebar'
 import HwidLimitAlert from '@renderer/components/profiles/hwid-limit-alert'
 import WindowControls from '@renderer/components/window-controls'
@@ -30,11 +34,8 @@ import UpdateBanner from '@renderer/components/updater/update-banner'
 const App: React.FC = () => {
   const { t } = useTranslation()
   const { appConfig } = useAppConfig()
-  const {
-    appTheme = 'system',
-    customTheme,
-    autoCheckUpdate
-  } = appConfig || {}
+  const { patchControledMihomoConfig } = useControledMihomoConfig()
+  const { appTheme = 'system', customTheme, autoCheckUpdate } = appConfig || {}
   const { setTheme, systemTheme } = useTheme()
   const page = useRoutes(routes)
   const { data: latest } = useSWR(
@@ -95,16 +96,42 @@ const App: React.FC = () => {
     }
     window.electron.ipcRenderer.on('needs-admin-setup', handleNeedsAdminSetup)
 
+    const handleForeignCoreWarning = (_event: unknown, payload: ForeignCoreWarning): void => {
+      // Pushed by the main-process gate (tray / shortcut enable), which kept TUN *off* because
+      // another core is running. "Ignore" enables it anyway (bypassing the gate); "Cancel"
+      // leaves it off — TUN was never brought up.
+      useForeignCoreStore.getState().open({
+        warning: payload,
+        onProceed: () =>
+          void patchControledMihomoConfig(
+            { tun: { enable: true }, dns: { enable: true } },
+            { bypassForeignCoreCheck: true }
+          )
+      })
+    }
+    window.electron.ipcRenderer.on('foreign-core-warning', handleForeignCoreWarning)
+
     if (platform === 'win32') {
       needsFirstRunAdmin().then((needs) => {
         if (needs) setShowAdminRequired(true)
       })
     }
 
+    // Pull the boot-time foreign-core check now that listeners are registered (a pushed
+    // event at startup races the renderer load and gets dropped while it is still loading).
+    // At startup we only *inform* with a non-blocking toast — no client list, just the
+    // message — and never block launch. (The connect-time alert is where the user decides.)
+    getForeignCoreWarning()
+      .then((warning) => {
+        if (warning) toast.warning(warning.title, { description: warning.message, id: 'foreign-core' })
+      })
+      .catch(() => {})
+
     return (): void => {
       window.electron.ipcRenderer.removeAllListeners('show-quit-confirm')
       window.electron.ipcRenderer.removeAllListeners('needs-admin-setup')
       window.electron.ipcRenderer.removeAllListeners('showError')
+      window.electron.ipcRenderer.removeAllListeners('foreign-core-warning')
     }
   }, [])
 
@@ -162,6 +189,7 @@ const App: React.FC = () => {
         />
       )}
       <HwidLimitAlert />
+      <ForeignCoreAlert />
       {latest?.version && <UpdateBanner latest={latest} />}
       {platform === 'darwin' && (
         <div className="fixed top-0.5 -left-1 h-10 flex items-center pl-3 z-100 app-drag">

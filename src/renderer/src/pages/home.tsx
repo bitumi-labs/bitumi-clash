@@ -9,8 +9,10 @@ import {
   updateTrayIcon,
   mihomoHotReloadConfig,
   patchMihomoConfig,
-  mihomoCloseAllConnections
+  mihomoCloseAllConnections,
+  getForeignCoreWarning
 } from '@renderer/utils/ipc'
+import { confirmForeignCore } from '@renderer/store/foreign-core-store'
 import { Switch } from '@renderer/components/ui/switch'
 import NumberFlow from '@number-flow/react'
 import { useTranslation } from 'react-i18next'
@@ -216,13 +218,25 @@ const Home: React.FC = () => {
   }
 
   const onValueChange = async (enable: boolean): Promise<void> => {
+    // Gate turning the VPN on: if another mihomo core is already running it would hijack
+    // routing. Ask before doing anything — Cancel aborts silently, Ignore proceeds. Either way
+    // we then bypass the main-process gate so this flow owns the whole connect (status log
+    // included) rather than being short-circuited.
+    if (enable && mainSwitchMode === 'tun') {
+      const warning = await getForeignCoreWarning()
+      if (warning && !(await confirmForeignCore(warning))) return
+    }
+
     setLoading(true)
     setLoadingDirection(enable ? 'connecting' : 'disconnecting')
     statusBegin()
     try {
       if (enable) {
         if (mainSwitchMode === 'tun') {
-          await patchControledMihomoConfig({ tun: { enable: true }, dns: { enable: true } })
+          await patchControledMihomoConfig(
+            { tun: { enable: true }, dns: { enable: true } },
+            { bypassForeignCoreCheck: true }
+          )
           await mihomoHotReloadConfig()
         } else {
           if (writeSysProxy && sysProxyMode == 'manual' && sysProxyDisabled) return

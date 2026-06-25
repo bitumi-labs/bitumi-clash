@@ -17,6 +17,7 @@ export default {
     upload: 'Upload',
     download: 'Download',
     quit: 'Quit',
+    ignore: 'Ignore',
     restart: 'Restart',
     open: 'Open',
     proxy: 'Proxy',

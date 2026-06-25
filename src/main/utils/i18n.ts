@@ -44,7 +44,10 @@ const zhCN: LocaleTranslations = {
     quitApp: '退出应用',
     retest: '重新测试',
     controllerListenError: '控制器监听错误',
-    tunStartFailed: '虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限'
+    tunStartFailed: '虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限',
+    inboundConflict: '入站端口/虚拟网卡被占用，可能有另一个内核正在运行：',
+    foreignCoreTitle: '检测到其他代理内核',
+    foreignCoreMessage: '另一个 Clash/mihomo 客户端正在运行并可能正在接管你的 VPN'
   },
   menu: {
     about: '关于',
@@ -196,7 +199,12 @@ const enUS: LocaleTranslations = {
     retest: 'Retest',
     controllerListenError: 'Controller listen error',
     tunStartFailed:
-      'Virtual network interface startup failed, go to core settings to try to manually grant core permissions'
+      'Virtual network interface startup failed, go to core settings to try to manually grant core permissions',
+    inboundConflict:
+      'The proxy port or TUN adapter is already in use — another core may be running:',
+    foreignCoreTitle: 'Another proxy core detected',
+    foreignCoreMessage:
+      'Another Clash/mihomo client appears to be running and may be controlling your VPN'
   },
   menu: {
     about: 'About',
@@ -348,7 +356,12 @@ const ruRU: LocaleTranslations = {
     retest: 'Повторить тест',
     controllerListenError: 'Ошибка прослушивания контроллера',
     tunStartFailed:
-      'Не удалось запустить TUN. Перейдите в настройки ядра и попробуйте предоставить права вручную'
+      'Не удалось запустить TUN. Перейдите в настройки ядра и попробуйте предоставить права вручную',
+    inboundConflict:
+      'Порт прокси или TUN-адаптер уже используется — возможно, запущено другое ядро:',
+    foreignCoreTitle: 'Обнаружено другое прокси-ядро',
+    foreignCoreMessage:
+      'Похоже, запущен другой клиент Clash/mihomo, который может управлять вашим VPN'
   },
   menu: {
     about: 'О программе',

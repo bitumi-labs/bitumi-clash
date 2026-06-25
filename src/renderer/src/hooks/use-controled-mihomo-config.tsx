@@ -6,7 +6,10 @@ import { getControledMihomoConfig, patchControledMihomoConfig as patch } from '@
 interface ControledMihomoConfigContextType {
   controledMihomoConfig: Partial<MihomoConfig> | undefined
   mutateControledMihomoConfig: () => void
-  patchControledMihomoConfig: (value: Partial<MihomoConfig>) => Promise<void>
+  patchControledMihomoConfig: (
+    value: Partial<MihomoConfig>,
+    options?: { bypassForeignCoreCheck?: boolean }
+  ) => Promise<{ blocked: boolean }>
 }
 
 const ControledMihomoConfigContext = createContext<ControledMihomoConfigContextType | undefined>(
@@ -19,11 +22,15 @@ export const ControledMihomoConfigProvider: React.FC<{ children: ReactNode }> = 
     () => getControledMihomoConfig()
   )
 
-  const patchControledMihomoConfig = async (value: Partial<MihomoConfig>): Promise<void> => {
+  const patchControledMihomoConfig = async (
+    value: Partial<MihomoConfig>,
+    options?: { bypassForeignCoreCheck?: boolean }
+  ): Promise<{ blocked: boolean }> => {
     try {
-      await patch(value)
+      return await patch(value, options)
     } catch (e) {
       notifyError(e, { id: 'patchControledMihomoConfig' })
+      return { blocked: false }
     } finally {
       mutateControledMihomoConfig()
     }

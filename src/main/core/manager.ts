@@ -71,6 +71,10 @@ let networkDownHandled = false
 
 let child: ChildProcess
 let retry = 10
+// Guards the once-per-start surfacing of inbound/TUN resource conflicts (another core
+// already owns the proxy port or TUN adapter). mihomo logs these but keeps running, so
+// without this the app would silently "succeed" with a broken VPN path.
+let inboundConflictReported = false
 
 let initialized = false
 let providerNames = new Set<string>()
@@ -131,6 +135,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     }
   }
   await resetProviderTracking()
+  inboundConflictReported = false
   const stdout = createWriteStream(logPath(), { flags: 'a' })
   const stderr = createWriteStream(logPath(), { flags: 'a' })
   const env = {
@@ -188,6 +193,18 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
         reject(`${t('tray.controllerListenError')}:\n${str}`)
       }
 
+      // A proxy-port bind conflict (another core already owns mixed-port etc.). mihomo logs
+      // this but keeps running, so surface it instead of silently piggybacking. The exact
+      // wording varies by mihomo version, so match only the unambiguous bind-error phrases.
+      if (
+        !inboundConflictReported &&
+        (str.includes('address already in use') ||
+          str.includes('Only one usage of each socket address'))
+      ) {
+        inboundConflictReported = true
+        showError(t('tray.coreStartError'), `${t('tray.inboundConflict')}\n${str.trim()}`)
+      }
+
       if (process.platform === 'win32' && str.includes('updater: finished')) {
         try {
           await stopCore(true)
@@ -212,15 +229,21 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
                 }
               }
 
-              if (
-                logLine.includes(
-                  'Start TUN listening error: configure tun interface: Connect: operation not permitted'
-                )
-              ) {
-                patchControledMihomoConfig({ tun: { enable: false } })
-                mainWindow?.webContents.send('controledMihomoConfigUpdated')
-                ipcMain.emit('updateTrayMenu')
-                reject(t('tray.tunStartFailed'))
+              if (logLine.includes('Start TUN listening error')) {
+                if (
+                  logLine.includes('configure tun interface: Connect: operation not permitted')
+                ) {
+                  patchControledMihomoConfig({ tun: { enable: false } })
+                  mainWindow?.webContents.send('controledMihomoConfigUpdated')
+                  ipcMain.emit('updateTrayMenu')
+                  reject(t('tray.tunStartFailed'))
+                } else if (!inboundConflictReported) {
+                  // Any other TUN bring-up failure — most importantly the adapter name being
+                  // already in use by another running core. Surface it rather than silently
+                  // routing through whoever owns the adapter.
+                  inboundConflictReported = true
+                  showError(t('tray.coreStartError'), `${t('tray.tunStartFailed')}\n${logLine.trim()}`)
+                }
               }
 
               const isDefaultProvider = logLine.includes(

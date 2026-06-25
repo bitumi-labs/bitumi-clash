@@ -17,6 +17,7 @@ export default {
     upload: '上传',
     download: '下载',
     quit: '退出',
+    ignore: '忽略',
     restart: '重启',
     open: '打开',
     proxy: '代理',

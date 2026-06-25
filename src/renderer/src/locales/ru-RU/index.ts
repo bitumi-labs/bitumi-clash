@@ -17,6 +17,7 @@ export default {
     upload: 'Загрузить',
     download: 'Скачать',
     quit: 'Выйти',
+    ignore: 'Игнорировать',
     restart: 'Перезапустить',
     open: 'Открыть',
     proxy: 'Прокси',

@@ -164,9 +164,12 @@ export async function getControledMihomoConfig(force = false): Promise<Partial<M
   )
 }
 
-export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): Promise<void> {
+export async function patchControledMihomoConfig(
+  patch: Partial<MihomoConfig>,
+  options?: { bypassForeignCoreCheck?: boolean }
+): Promise<{ blocked: boolean }> {
   return ipcErrorWrapper(
-    await window.electron.ipcRenderer.invoke('patchControledMihomoConfig', patch)
+    await window.electron.ipcRenderer.invoke('patchControledMihomoConfig', patch, options)
   )
 }
 
@@ -264,6 +267,17 @@ export async function checkElevateTask(): Promise<boolean> {
 
 export async function needsFirstRunAdmin(): Promise<boolean> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('needsFirstRunAdmin'))
+}
+
+export interface ForeignCoreWarning {
+  title: string
+  message: string
+  /** Real client names of the other running cores (e.g. "clashapp"); shown in the alert. */
+  clients?: string[]
+}
+
+export async function getForeignCoreWarning(): Promise<ForeignCoreWarning | null> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getForeignCoreWarning'))
 }
 
 export async function restartAsAdmin(): Promise<void> {
