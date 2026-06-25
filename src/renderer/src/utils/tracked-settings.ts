@@ -331,7 +331,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'controlTun',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.takeOverTun',
     kind: 'bool',
     default: false,
@@ -340,7 +340,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.stack',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.tunModeStack',
     kind: 'enum',
     default: 'mixed',
@@ -350,7 +350,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.device',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.tunCardName',
     kind: 'string',
     default: platform === 'darwin' ? '' : 'mihomo',
@@ -360,7 +360,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.strict-route',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.strictRoute',
     kind: 'bool',
     default: false,
@@ -370,7 +370,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.auto-route',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.autoSetRouteRules',
     kind: 'bool',
     default: true,
@@ -380,7 +380,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.auto-redirect',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.autoSetTCPRedirect',
     kind: 'bool',
     default: false,
@@ -390,7 +390,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.auto-detect-interface',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.autoSelectTrafficExit',
     kind: 'bool',
     default: true,
@@ -400,7 +400,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.disable-icmp-forwarding',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.icmpForwarding',
     kind: 'bool',
     default: false,
@@ -411,7 +411,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.mtu',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'MTU',
     kind: 'number',
     default: 1500,
@@ -421,7 +421,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.dns-hijack',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.dnsHijack',
     kind: 'list',
     default: ['any:53'],
@@ -431,7 +431,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tun.route-exclude-address',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.excludeCustomNetworks',
     kind: 'list',
     default: TUN_ROUTE_EXCLUDE_DEFAULT,
@@ -441,7 +441,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'autoSetDNSMode',
     section: 'tun',
-    route: '/tun',
+    route: '/settings/tun',
     labelKey: 'pages.tun.autoSetSystemDNS',
     kind: 'enum',
     default: 'exec',
@@ -458,7 +458,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sysProxy.enable',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.systemProxyToggle',
     kind: 'bool',
     default: true,
@@ -467,7 +467,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sysProxy.host',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.proxyHost',
     kind: 'string',
     default: '',
@@ -476,7 +476,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sysProxy.mode',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.proxyMode',
     kind: 'enum',
     default: 'manual',
@@ -486,7 +486,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sysProxy.bypass',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.proxyBypassList',
     kind: 'list',
     default: SYSPROXY_BYPASS_DEFAULT,
@@ -495,7 +495,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sysProxy.pacScript',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.editPACScript',
     kind: 'string',
     default: SYSPROXY_PAC_DEFAULT,
@@ -504,7 +504,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sysProxy.settingMode',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.settingMethod',
     kind: 'enum',
     default: 'exec',
@@ -515,7 +515,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'onlyActiveDevice',
     section: 'sysproxy',
-    route: '/sysproxy',
+    route: '/settings/sysproxy',
     labelKey: 'pages.sysproxy.onlyActiveInterface',
     kind: 'bool',
     default: false,
@@ -527,7 +527,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.ipv6',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.ipv6',
     kind: 'bool',
     default: true,
@@ -537,7 +537,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.enhanced-mode',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.domainMappingMode',
     kind: 'enum',
     default: 'fake-ip',
@@ -552,7 +552,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.fake-ip-range',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.fakeIPRangeIPv4',
     kind: 'string',
     default: '198.18.0.1/16',
@@ -562,7 +562,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.fake-ip-range6',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.fakeIPRangeIPv6',
     kind: 'string',
     default: '',
@@ -572,7 +572,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.fake-ip-filter',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.fakeIPFilter',
     kind: 'list',
     default: DNS_FAKE_IP_FILTER_DEFAULT,
@@ -582,7 +582,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.default-nameserver',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.baseServer',
     kind: 'list',
     default: ['tls://1.1.1.1'],
@@ -592,7 +592,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.nameserver',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'pages.dns.defaultResolver',
     kind: 'list',
     default: ['https://1.1.1.1/dns-query', 'https://8.8.8.8/dns-query'],
@@ -602,7 +602,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.respect-rules',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.connectionRespectRules',
     kind: 'bool',
     default: false,
@@ -612,7 +612,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.direct-nameserver',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.directResolver',
     kind: 'list',
     default: [],
@@ -622,7 +622,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.proxy-server-nameserver',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.proxyNodeResolver',
     kind: 'list',
     default: [],
@@ -632,7 +632,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.nameserver-policy',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.domainResolutionPolicy',
     kind: 'record',
     default: {},
@@ -642,7 +642,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.use-system-hosts',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.useSystemHosts',
     kind: 'bool',
     default: false,
@@ -652,7 +652,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'dns.use-hosts',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.customHosts',
     kind: 'bool',
     default: false,
@@ -662,7 +662,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'hosts',
     section: 'dns',
-    route: '/dns',
+    route: '/settings/dns',
     labelKey: 'dns.customHosts',
     kind: 'list',
     default: [],
@@ -674,7 +674,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.override-destination',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.overrideConnectionAddress',
     kind: 'bool',
     default: false,
@@ -684,7 +684,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.force-dns-mapping',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.sniffRealIPMapping',
     kind: 'bool',
     default: true,
@@ -694,7 +694,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.parse-pure-ip',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.sniffUnmappedIP',
     kind: 'bool',
     default: true,
@@ -704,7 +704,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.sniff.HTTP.ports',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.httpPortSniffer',
     kind: 'numlist',
     default: [80, 443],
@@ -714,7 +714,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.sniff.TLS.ports',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.tlsPortSniffer',
     kind: 'numlist',
     default: [443],
@@ -724,7 +724,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.sniff.QUIC.ports',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.quicPortSniffer',
     kind: 'numlist',
     default: [],
@@ -734,7 +734,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.skip-domain',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.skipDomainSniffing',
     kind: 'list',
     default: ['+.push.apple.com'],
@@ -744,7 +744,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.force-domain',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.forceDomainSniffing',
     kind: 'list',
     default: [],
@@ -754,7 +754,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.skip-dst-address',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.skipDestAddressSniffing',
     kind: 'list',
     default: SNIFF_SKIP_DST_DEFAULT,
@@ -764,7 +764,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'sniffer.skip-src-address',
     section: 'sniffer',
-    route: '/sniffer',
+    route: '/settings/sniffer',
     labelKey: 'pages.sniffer.skipSourceAddressSniffing',
     kind: 'list',
     default: [],
@@ -776,7 +776,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'core',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'pages.mihomo.coreVersion',
     kind: 'enum',
     default: 'mihomo',
@@ -790,7 +790,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'corePermissionMode',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'pages.mihomo.runningMode',
     kind: 'enum',
     default: 'elevated',
@@ -803,7 +803,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'ipv6',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'IPv6',
     kind: 'bool',
     default: false,
@@ -812,7 +812,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'maxLogDays',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'pages.mihomo.logRetentionDays',
     kind: 'number',
     default: 7,
@@ -821,7 +821,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'log-level',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'pages.mihomo.logLevel',
     kind: 'enum',
     default: 'info',
@@ -839,7 +839,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'mixed-port',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.mixedPort',
     kind: 'number',
     default: 7897,
@@ -848,7 +848,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'socks-port',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.socksPort',
     kind: 'number',
     default: 0,
@@ -857,7 +857,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'port',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.httpPort',
     kind: 'number',
     default: 0,
@@ -866,7 +866,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'redir-port',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.redirPort',
     kind: 'number',
     default: 0,
@@ -876,7 +876,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tproxy-port',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.tproxyPort',
     kind: 'number',
     default: 0,
@@ -886,7 +886,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'allow-lan',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.allowLan',
     kind: 'bool',
     default: false,
@@ -895,7 +895,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'lan-allowed-ips',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.allowedIpRanges',
     kind: 'list',
     default: ['0.0.0.0/0', '::/0'],
@@ -905,7 +905,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'lan-disallowed-ips',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.deniedIpRanges',
     kind: 'list',
     default: [],
@@ -915,7 +915,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'authentication',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.authentication',
     kind: 'list',
     default: [],
@@ -924,7 +924,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'skip-auth-prefixes',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.portSettings.skipAuthIpRanges',
     kind: 'list',
     default: ['127.0.0.1/32'],
@@ -935,7 +935,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'external-controller',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.controllerSettings.listenAddress',
     kind: 'string',
     default: '',
@@ -944,7 +944,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'secret',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.controllerSettings.accessSecret',
     kind: 'string',
     default: '',
@@ -954,7 +954,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'external-ui',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.controllerSettings.enableControllerPanel',
     kind: 'bool',
     default: false,
@@ -964,7 +964,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'external-ui-url',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.controllerSettings.controllerPanel',
     kind: 'string',
     default: 'https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip',
@@ -974,7 +974,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'external-controller-cors.allow-private-network',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.controllerSettings.allowPrivateNetwork',
     kind: 'bool',
     default: false,
@@ -984,7 +984,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'external-controller-cors.allow-origins',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.controllerSettings.allowedOrigins',
     kind: 'list',
     default: ['https://metacubex.github.io', 'https://board.zash.run.place'],
@@ -996,7 +996,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'disableSystemCA',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.envSettings.disableSystemCA',
     kind: 'bool',
     default: false,
@@ -1005,7 +1005,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'disableEmbedCA',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.envSettings.disableBuiltinCA',
     kind: 'bool',
     default: false,
@@ -1014,7 +1014,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'disableLoopbackDetector',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.envSettings.disableLoopbackDetection',
     kind: 'bool',
     default: false,
@@ -1023,7 +1023,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'disableNftables',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.envSettings.disableNftables',
     kind: 'bool',
     default: false,
@@ -1033,7 +1033,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'safePaths',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.envSettings.trustedPath',
     kind: 'list',
     default: [],
@@ -1044,7 +1044,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'find-process-mode',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.findProcess',
     kind: 'enum',
     default: 'always',
@@ -1058,7 +1058,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'profile.store-selected',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.storeSelected',
     kind: 'bool',
     default: true,
@@ -1067,7 +1067,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'profile.store-fake-ip',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.storeFakeIP',
     kind: 'bool',
     default: true,
@@ -1076,7 +1076,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'unified-delay',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.unifiedDelay',
     kind: 'bool',
     default: false,
@@ -1085,7 +1085,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'tcp-concurrent',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.tcpConcurrent',
     kind: 'bool',
     default: false,
@@ -1094,7 +1094,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'disable-keep-alive',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.disableTCPKeepAlive',
     kind: 'bool',
     default: false,
@@ -1103,7 +1103,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'keep-alive-interval',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.tcpKeepAliveInterval',
     kind: 'number',
     default: 0,
@@ -1112,7 +1112,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'keep-alive-idle',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.tcpKeepAliveIdle',
     kind: 'number',
     default: 0,
@@ -1121,7 +1121,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'global-client-fingerprint',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.utlsFingerprint',
     kind: 'string',
     default: '',
@@ -1130,7 +1130,7 @@ export const TRACKED_SETTINGS: TrackedSetting[] = [
   {
     id: 'interface-name',
     section: 'mihomo',
-    route: '/mihomo',
+    route: '/settings/mihomo',
     labelKey: 'mihomo.advancedSettings.outboundInterface',
     kind: 'string',
     default: '',

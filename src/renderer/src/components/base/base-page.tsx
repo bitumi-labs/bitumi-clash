@@ -20,6 +20,8 @@ import { useScrollToFocusedSetting } from '@renderer/hooks/use-setting-focus'
 const sidebarPaths = new Set(['/home'])
 const isMac = platform === 'darwin'
 
+// Detail pages live under their tab's path (e.g. /settings/dns, /rules/resources), so a tab
+// stays highlighted on all of its sub-pages.
 const navButtons = [
   { path: '/settings', icon: SettingsIcon, i18nKey: 'common.settings' },
   { path: '/profiles', icon: ProfileIcon, i18nKey: 'sider.profileManagement', configKey: 'enableProfilesTab' },
@@ -28,6 +30,10 @@ const navButtons = [
   { path: '/rules', icon: RulesIcon, i18nKey: 'sider.rules', configKey: 'enableRulesTab' },
   { path: '/logs', icon: LogsIcon, i18nKey: 'sider.logs', configKey: 'enableLogsTab' }
 ] as const
+
+// A path belongs to a tab when it is the tab itself or any nested route under it.
+const matchesTab = (pathname: string, item: (typeof navButtons)[number]): boolean =>
+  pathname === item.path || pathname.startsWith(item.path + '/')
 
 interface Props {
   title?: React.ReactNode
@@ -48,9 +54,10 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
 
   // Tabs are top-level destinations: collapse the current entry onto Home before
   // pushing the tab, so Back from any tab always returns to Home — even if sub-pages
-  // (e.g. the VNI page) were visited in between.
-  const navigateToTab = (path: string): void => {
-    if (location.pathname === path) {
+  // (e.g. the VNI page) were visited in between. When `isCurrent` (the location already
+  // belongs to this tab, including its sub-pages), clicking the tab collapses to Home.
+  const navigateToTab = (path: string, isCurrent = location.pathname === path): void => {
+    if (isCurrent) {
       navigate('/home')
       return
     }
@@ -77,7 +84,7 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
                 return null
               }
               const Icon = item.icon
-              const isActive = location.pathname === item.path
+              const isActive = matchesTab(location.pathname, item)
               return (
                 <Button
                   key={item.path}
@@ -85,7 +92,7 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
                   variant="ghost"
                   title={t(item.i18nKey)}
                   className={`app-nodrag ${isActive ? 'bg-accent/70 text-foreground' : ''}`}
-                  onClick={() => navigateToTab(item.path)}
+                  onClick={() => navigateToTab(item.path, isActive)}
                 >
                   <Icon className="size-4" />
                 </Button>

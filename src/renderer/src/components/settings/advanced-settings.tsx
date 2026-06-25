@@ -246,7 +246,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
       <SettingItem
         title={t('settings.advanced.takeOverDNS')}
         actions={
-          <Button size="icon-sm" variant="ghost" onClick={() => navigate('/dns')}>
+          <Button size="icon-sm" variant="ghost" onClick={() => navigate('/settings/dns')}>
             <Settings className="text-lg" />
           </Button>
         }
@@ -269,7 +269,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
       <SettingItem
         title={t('settings.advanced.takeOverSniffer')}
         actions={
-          <Button size="icon-sm" variant="ghost" onClick={() => navigate('/sniffer')}>
+          <Button size="icon-sm" variant="ghost" onClick={() => navigate('/settings/sniffer')}>
             <Settings className="text-lg" />
           </Button>
         }

@@ -16,15 +16,15 @@ import SettingsTabs from '@renderer/pages/settings-tabs'
 import Home from '@renderer/pages/home'
 const routes = [
   {
-    path: '/mihomo',
+    path: '/settings/mihomo',
     element: <Mihomo />
   },
   {
-    path: '/sysproxy',
+    path: '/settings/sysproxy',
     element: <Sysproxy />
   },
   {
-    path: '/tun',
+    path: '/settings/tun',
     element: <Tun />
   },
   {
@@ -36,15 +36,15 @@ const routes = [
     element: <Rules />
   },
   {
-    path: '/resources',
+    path: '/rules/resources',
     element: <Resources />
   },
   {
-    path: '/dns',
+    path: '/settings/dns',
     element: <DNS />
   },
   {
-    path: '/sniffer',
+    path: '/settings/sniffer',
     element: <Sniffer />
   },
   {

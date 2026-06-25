@@ -54,7 +54,7 @@ const Rules: React.FC = () => {
             variant="ghost"
             className="app-nodrag"
             title={t('pages.resources.title')}
-            onClick={() => navigate('/resources')}
+            onClick={() => navigate('/rules/resources')}
           >
             <Database className="text-lg" />
           </Button>

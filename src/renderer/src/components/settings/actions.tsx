@@ -202,7 +202,7 @@ const Actions: React.FC<ActionsProps> = (props) => {
           actions={
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon-sm" variant="ghost" onClick={() => navigate('/mihomo')}>
+                <Button size="icon-sm" variant="ghost" onClick={() => navigate('/settings/mihomo')}>
                   <Settings className="text-lg" />
                 </Button>
               </TooltipTrigger>

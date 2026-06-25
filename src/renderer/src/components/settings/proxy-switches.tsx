@@ -51,7 +51,7 @@ const ProxySwitches: React.FC = () => {
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => navigate('/tun')}
+            onClick={() => navigate('/settings/tun')}
           >
             <Settings className="text-lg" />
           </Button>
@@ -79,7 +79,7 @@ const ProxySwitches: React.FC = () => {
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => navigate('/sysproxy')}
+            onClick={() => navigate('/settings/sysproxy')}
           >
             <Settings className="text-lg" />
           </Button>
