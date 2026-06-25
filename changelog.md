@@ -1,3 +1,23 @@
+## 1.1.0
+
+Smarter rule-provider updates, multi-core conflict detection, per-fork VPN identity, and Home stats/import polish.
+
+### Features
+
+- rule providers: an "Update Changed" action that probes each provider's source (ETag / Last-Modified / content hash) and re-pulls only the lists that actually changed instead of re-downloading every one; refreshing a subscription now also refreshes its changed rule-sets
+- detect other running Clash/mihomo cores and warn before turning the VPN on, so a second client can't silently hijack routing; inbound proxy-port and TUN-adapter conflicts are now surfaced too
+- per-fork VPN identity: the TUN adapter name, mixed-port and DNS fake-ip range come from branding, so two forks no longer collide on the same adapter/port
+- Home: optional "Remaining Traffic" and "Expiry Date" columns, with an option to hide them when both are unlimited
+- Home: the first subscription import narrates progress in place on the empty screen instead of trapping you behind a modal spinner
+
+### Behavior
+
+- settings and Rules detail pages are nested under their parent tab, so the tab stays highlighted across its sub-pages
+
+### Build & release
+
+- bundle the native better-sqlite3 module, which backs the new rule-provider cache
+
 ## 1.0.8
 
 Restores the in-app auto-updater.
