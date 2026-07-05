@@ -11,7 +11,6 @@
 </p>
 
 <h3 align="center">Clash App - a visual fork of Koala Clash for <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a></h3>
-<h3 align="center"><a href="https://t.me/bitumi_bot">➡️ Bitumi Secure Connection (Bot) ⬅️</a></h3>
 
 ## About
 
