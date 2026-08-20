@@ -217,11 +217,13 @@ async function cleanProfile(
 }
 
 function cleanBooleanConfigs(profile: MihomoConfig): void {
-  if (profile.ipv6) {
-    delete (profile as Partial<MihomoConfig>).ipv6
-  }
-
+  // `ipv6` belongs in this list, not in a special case of its own. It used to be
+  // deleted when TRUTHY, which is inverted: mihomo defaults `ipv6` to false, so
+  // stripping the true value silently disabled IPv6 no matter what the core
+  // setting or the profile asked for. Deleting only the falsy value keeps the
+  // runtime config compact while letting `ipv6: true` through.
   const booleanConfigs = [
+    'ipv6',
     'unified-delay',
     'tcp-concurrent',
     'geodata-mode',
