@@ -83,9 +83,20 @@ jobs:
               ;;
             *)
               # Manual dispatch: build the version typed into the input (empty = beta).
+              # A typed version only re-publishes a release that already exists in the
+              # repo: the workflow has no write access to main (ruleset-protected), so
+              # the bump commit — and the changelog section the notes are cut from —
+              # must already be on the branch being built.
+              DISPATCH_VERSION=$(echo "${{ github.event.inputs.version }}" | sed 's/^v//')
+              PKG_VERSION=$(jq -r '.version' package.json)
+              if [ -n "$DISPATCH_VERSION" ] && [ "$DISPATCH_VERSION" != "$PKG_VERSION" ]; then
+                echo "::error::Requested $DISPATCH_VERSION but package.json on ${{ github.ref_name }} is $PKG_VERSION."
+                echo "::error::Commit the version bump (and its changelog entry) first - pushing it to main starts the release build on its own."
+                exit 1
+              fi
               echo "is_nightly=false" >> "$GITHUB_OUTPUT"
               echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
-              echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+              echo "version=$DISPATCH_VERSION" >> "$GITHUB_OUTPUT"
               echo "should_build=true" >> "$GITHUB_OUTPUT"
               ;;
           esac
@@ -366,22 +377,6 @@ jobs:
           fi
 
           echo "version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Update Version
-        shell: bash
-        run: |
-          CLEAN_VERSION="${{ steps.release_version.outputs.version }}"
-          jq --arg version "$CLEAN_VERSION" '.version = $version' package.json > tmp.json && mv tmp.json package.json
-
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add package.json
-          if git diff --cached --quiet; then
-            echo "package.json already uses $CLEAN_VERSION"
-          else
-            git commit -m "update version to $CLEAN_VERSION"
-            git push
-          fi
 
       - name: Install Dependencies and Updater
         shell: bash

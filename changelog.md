@@ -1,3 +1,11 @@
+## 1.1.2
+
+Maintenance release — release-pipeline fix; no functional app changes since 1.1.0.
+
+### Build & release
+
+- the release job no longer commits and pushes the version bump to `main`, which the branch ruleset rejects; a manual dispatch now validates the typed version against `package.json` up front instead of failing after the whole build matrix has run
+
 ## 1.1.0
 
 Smarter rule-provider updates, multi-core conflict detection, per-fork VPN identity, and Home stats/import polish.

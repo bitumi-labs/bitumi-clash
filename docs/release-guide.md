@@ -44,7 +44,7 @@ Artifact names derive from `branding.productName` (e.g. `ClashApp_x64-setup.exe`
 
 ## Other workflow triggers
 
-- **Manual dispatch with a version** (`Actions → Build → Run workflow`, type `1.2.1`) — cuts a real release without a version-bump commit. Use this if the push trigger didn't fire.
+- **Manual dispatch with a version** (`Actions → Build → Run workflow`, type `1.2.1`) — re-runs the release for a version **already committed** on the selected branch. Use this if the push trigger didn't fire. `main` is ruleset-protected and the workflow cannot write to it, so a version that doesn't match `package.json` fails the `setup` job instead of building.
 - **Manual dispatch with empty version** — publishes a rolling `pre-release` beta (`<next>-beta-<hash>`).
 - **Nightly cron (18:00 UTC)** — builds from `dev` and moves the `nightly` pre-release tag, but only when `dev` has new commits since the last nightly.
 
