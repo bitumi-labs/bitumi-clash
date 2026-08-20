@@ -1,14 +1,14 @@
 {
-  "appId": "com.clashapp.app",
-  "productName": "ClashApp",
-  "appName": "ClashApp",
-  "packageName": "clashapp",
-  "protocolScheme": "clashapp",
-  "protocolName": "ClashApp URI Scheme",
-  "userAgentProduct": "clashapp",
-  "updateUserAgent": "ClashApp",
-  "updateRepo": "kirisame-meguru/clashapp",
-  "tunDeviceName": "mihomo",
-  "mixedPort": 7897,
-  "fakeIpRange": "198.18.0.1/16"
+  "appId": "com.bitumi.app",
+  "productName": "Bitumi Clash",
+  "appName": "Bitumi Clash",
+  "packageName": "bitumi-clash",
+  "protocolScheme": "bitumi",
+  "protocolName": "Bitumi URI Scheme",
+  "userAgentProduct": "bitumi",
+  "updateUserAgent": "Bitumi-Clash",
+  "updateRepo": "bitumi-labs/bitumi-clash",
+  "tunDeviceName": "bitumi",
+  "mixedPort": 7896,
+  "fakeIpRange": "198.19.0.1/16"
 }
