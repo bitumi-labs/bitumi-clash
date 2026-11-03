@@ -141,9 +141,9 @@ jobs:
             arch: arm64
             format: pacman
 
-          - os: macos-latest
+          - os: macos-15-intel
             arch: x64
-          - os: macos-latest
+          - os: macos-15-intel
             arch: arm64
 
     name: Build ${{ matrix.os }}-${{ matrix.arch }}${{ matrix.format && '-' || '' }}${{ matrix.format || '' }}
@@ -204,7 +204,7 @@ jobs:
       # dir and fail with "<projectDir> not a file". For unsigned builds we instead
       # set CSC_IDENTITY_AUTO_DISCOVERY=false so signing is cleanly skipped.
       - name: Configure Apple Signing
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           if [ -n "${{ secrets.APPLE_CERTIFICATE }}" ]; then

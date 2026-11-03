@@ -6,6 +6,10 @@
 - Home: keep oversized announcements scrollable within the display's usable area
 - Deep-link subscription imports now show progress and completion or failure in the Home status log, including the first subscription
 
+### Build & release
+
+- Build both macOS architectures on the Intel runner pool to avoid ARM runner capacity failures
+
 ## 1.1.2
 
 Maintenance release — release-pipeline fix; no functional app changes since 1.1.0.
