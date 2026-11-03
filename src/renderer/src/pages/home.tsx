@@ -16,7 +16,7 @@ import { confirmForeignCore } from '@renderer/store/foreign-core-store'
 import { Switch } from '@renderer/components/ui/switch'
 import NumberFlow from '@number-flow/react'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import {
@@ -146,6 +146,28 @@ const Home: React.FC = () => {
     if (!profileConfig?.current || !profileConfig?.items) return null
     return profileConfig.items.find((item) => item.id === profileConfig.current) ?? null
   }, [profileConfig])
+
+  const announceRef = useRef<HTMLDivElement>(null)
+  const [announceHeight, setAnnounceHeight] = useState(0)
+  useEffect(() => {
+    const element = announceRef.current
+    const update = (): void => {
+      const height = element
+        ? Math.ceil(
+            element.getBoundingClientRect().height + parseFloat(getComputedStyle(element).marginTop)
+          )
+        : 0
+      setAnnounceHeight(height)
+      void window.electron.ipcRenderer.invoke('resizeForAnnouncement', height)
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    if (element) observer.observe(element)
+    return () => {
+      observer.disconnect()
+      void window.electron.ipcRenderer.invoke('resizeForAnnouncement', 0)
+    }
+  }, [currentProfile?.announce])
 
   const subscription = currentProfile?.extra
   const trafficUsed = (subscription?.upload ?? 0) + (subscription?.download ?? 0)
@@ -337,7 +359,10 @@ const Home: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="grid h-full grid-rows-[auto_minmax(0,1fr)_auto] px-3 pb-3">
+        <div
+          className="grid h-full grid-rows-[auto_minmax(260px,1fr)_auto] px-3 pb-3"
+          style={{ minHeight: 436 + announceHeight }}
+        >
           {currentProfile && (
             <div className="relative z-10 px-0.5 pt-3">
               <div
@@ -390,8 +415,9 @@ const Home: React.FC = () => {
               </div>
               {currentProfile.announce && (
                 <div
+                  ref={announceRef}
                   data-guide="home-profile-announce"
-                  className="mt-2 text-center text-sm font-medium whitespace-pre-line text-foreground/90"
+                  className="mt-2 text-center text-sm font-medium whitespace-pre-line break-words text-foreground/90"
                 >
                   {currentProfile.announce}
                 </div>

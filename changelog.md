@@ -1,3 +1,11 @@
+## 1.1.4
+
+### Fixes
+
+- Home: grow the window to fit subscription announcements so connection status messages no longer overlap the footer; restore compact height when the announcement disappears
+- Home: keep oversized announcements scrollable within the display's usable area
+- Deep-link subscription imports now show progress and completion or failure in the Home status log, including the first subscription
+
 ## 1.1.2
 
 Maintenance release — release-pipeline fix; no functional app changes since 1.1.0.

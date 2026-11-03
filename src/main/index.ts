@@ -59,6 +59,28 @@ function getWindowLayout(): typeof COMPACT_WINDOW {
   }
 }
 
+export function resizeForAnnouncement(extraHeight: number): void {
+  if (!mainWindow || mainWindow.isDestroyed() || !Number.isFinite(extraHeight) || extraHeight < 0) return
+  const bounds = mainWindow.getBounds()
+  const workArea = screen.getDisplayMatching(bounds).workArea
+  const height = Math.min(
+    COMPACT_WINDOW.height + Math.ceil(extraHeight * mainWindow.webContents.getZoomFactor()),
+    workArea.height
+  )
+  if (height === bounds.height) return
+  if (process.platform === 'linux') mainWindow.setResizable(true)
+  mainWindow.setMinimumSize(COMPACT_WINDOW.width, Math.min(bounds.height, height))
+  mainWindow.setMaximumSize(COMPACT_WINDOW.width, Math.max(bounds.height, height))
+  mainWindow.setBounds({
+    ...bounds,
+    height,
+    y: Math.max(workArea.y, Math.min(bounds.y, workArea.y + workArea.height - height))
+  })
+  mainWindow.setMinimumSize(COMPACT_WINDOW.width, height)
+  mainWindow.setMaximumSize(COMPACT_WINDOW.width, height)
+  if (process.platform === 'linux') mainWindow.setResizable(false)
+}
+
 /**
  * Show error to the user via renderer toast notification.
  * Falls back to system dialog if the window is not available.

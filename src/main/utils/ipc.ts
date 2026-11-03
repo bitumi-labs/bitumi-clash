@@ -100,6 +100,7 @@ import {
   closeMainWindow,
   mainWindow,
   needsFirstRunAdmin,
+  resizeForAnnouncement,
   setNotQuitDialog,
   showError,
   showMainWindow,
@@ -342,6 +343,9 @@ export function registerIpcMainHandlers(): void {
     setLanguage(lang)
     ipcMain.emit('updateTrayMenu')
     await updateApplicationMenu()
+  })
+  ipcMain.handle('resizeForAnnouncement', (event, height: number) => {
+    if (event.sender === mainWindow?.webContents) resizeForAnnouncement(height)
   })
   ipcMain.handle('windowMinimize', () => {
     mainWindow?.minimize()
