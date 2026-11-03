@@ -59,12 +59,16 @@ function getWindowLayout(): typeof COMPACT_WINDOW {
   }
 }
 
-export function resizeForAnnouncement(extraHeight: number): void {
-  if (!mainWindow || mainWindow.isDestroyed() || !Number.isFinite(extraHeight) || extraHeight < 0) return
+export function resizeForHome(contentHeight: number): void {
+  if (!mainWindow || mainWindow.isDestroyed() || !Number.isFinite(contentHeight) || contentHeight < 0) return
   const bounds = mainWindow.getBounds()
+  const frameHeight = bounds.height - mainWindow.getContentBounds().height
   const workArea = screen.getDisplayMatching(bounds).workArea
   const height = Math.min(
-    COMPACT_WINDOW.height + Math.ceil(extraHeight * mainWindow.webContents.getZoomFactor()),
+    Math.max(
+      COMPACT_WINDOW.height,
+      Math.ceil(contentHeight * mainWindow.webContents.getZoomFactor())
+    ) + frameHeight,
     workArea.height
   )
   if (height === bounds.height) return

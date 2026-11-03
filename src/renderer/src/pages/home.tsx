@@ -16,7 +16,7 @@ import { confirmForeignCore } from '@renderer/store/foreign-core-store'
 import { Switch } from '@renderer/components/ui/switch'
 import NumberFlow from '@number-flow/react'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import {
@@ -147,27 +147,45 @@ const Home: React.FC = () => {
     return profileConfig.items.find((item) => item.id === profileConfig.current) ?? null
   }, [profileConfig])
 
-  const announceRef = useRef<HTMLDivElement>(null)
-  const [announceHeight, setAnnounceHeight] = useState(0)
-  useEffect(() => {
-    const element = announceRef.current
-    const update = (): void => {
-      const height = element
-        ? Math.ceil(
-            element.getBoundingClientRect().height + parseFloat(getComputedStyle(element).marginTop)
-          )
-        : 0
-      setAnnounceHeight(height)
-      void window.electron.ipcRenderer.invoke('resizeForAnnouncement', height)
+  const pageRef = useRef<HTMLDivElement>(null)
+  const homeRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const home = homeRef.current
+    const page = pageRef.current
+    const content = home?.parentElement
+    if (!home || !page || !content) {
+      void window.electron.ipcRenderer.invoke('resizeForHome', 0)
+      return
     }
+
+    let frame = 0
+    let lastHeight = 0
+    const update = (): void => {
+      const style = getComputedStyle(content)
+      // Measure the whole intrinsic layout, not just the announcement. The grid
+      // must not depend on viewport height, otherwise resizing feeds back into it.
+      const height = Math.ceil(
+        content.getBoundingClientRect().top - page.getBoundingClientRect().top +
+          parseFloat(style.paddingTop) + home.getBoundingClientRect().height +
+          parseFloat(style.paddingBottom)
+      )
+      if (height === lastHeight) return
+      lastHeight = height
+      void window.electron.ipcRenderer.invoke('resizeForHome', height)
+    }
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(update)
+    })
+    observer.observe(home)
+    observer.observe(content)
     update()
-    const observer = new ResizeObserver(update)
-    if (element) observer.observe(element)
     return () => {
       observer.disconnect()
-      void window.electron.ipcRenderer.invoke('resizeForAnnouncement', 0)
+      cancelAnimationFrame(frame)
+      void window.electron.ipcRenderer.invoke('resizeForHome', 0)
     }
-  }, [currentProfile?.announce])
+  }, [hasProfiles])
 
   const subscription = currentProfile?.extra
   const trafficUsed = (subscription?.upload ?? 0) + (subscription?.download ?? 0)
@@ -314,7 +332,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <BasePage>
+    <BasePage ref={pageRef}>
       {importOpen && (
         <EditInfoModal
           item={{ id: '', type: 'remote', name: '' } as ProfileItem}
@@ -360,8 +378,8 @@ const Home: React.FC = () => {
         </div>
       ) : (
         <div
-          className="grid h-full grid-rows-[auto_minmax(260px,1fr)_auto] px-3 pb-3"
-          style={{ minHeight: 436 + announceHeight }}
+          ref={homeRef}
+          className="grid min-h-[436px] grid-rows-[auto_auto_auto] px-3 pb-3"
         >
           {currentProfile && (
             <div className="relative z-10 px-0.5 pt-3">
@@ -415,7 +433,6 @@ const Home: React.FC = () => {
               </div>
               {currentProfile.announce && (
                 <div
-                  ref={announceRef}
                   data-guide="home-profile-announce"
                   className="mt-2 text-center text-sm font-medium whitespace-pre-line break-words text-foreground/90"
                 >
@@ -463,7 +480,7 @@ const Home: React.FC = () => {
             </div>
           )}
 
-          <div className="flex min-h-0 flex-col items-center justify-start py-3">
+          <div className="flex min-h-[260px] flex-col items-center justify-start py-3">
             {!subscription && (
               <div className="mb-3 flex h-6 items-center justify-center">
                 <CharacterMorph
@@ -527,7 +544,9 @@ const Home: React.FC = () => {
                 format={{ minimumIntegerDigits: 2, useGrouping: false }}
               />
             </div>
-            <StatusLog />
+            <div className="mt-auto flex min-h-16 w-full shrink-0 flex-col justify-end">
+              <StatusLog />
+            </div>
           </div>
 
           <div className="relative z-10 px-0.5 pt-3">

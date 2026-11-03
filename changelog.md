@@ -1,8 +1,9 @@
-## Unreleased
+## 1.1.5
 
 ### Fixes
 
 - macOS: allow ad-hoc-signed builds to load the bundled Electron framework under Hardened Runtime instead of aborting at launch with a Team ID mismatch
+- Home: size the window from the complete rendered layout, including controls, status-log space, footer, and native window borders, instead of estimating from announcement height; prevent the unnecessary scrollbar and clipped footer introduced in 1.1.4
 
 ## 1.1.4
 
